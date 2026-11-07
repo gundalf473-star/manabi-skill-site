@@ -1,0 +1,22 @@
+name = "manabi-skill-api"
+main = "worker.js"
+compatibility_date = "2025-10-01"
+workers_dev = false
+
+routes = [
+  { pattern = "api.manabiskill.com", custom_domain = true }
+]
+
+[[kv_namespaces]]
+binding = "SKILL_KV"
+id = "0bc12cbe348f4bfc956c5901b9067d97"
+
+[vars]
+SITE_URL = "https://manabiskill.com"
+# プランID → Stripeの価格ID（サンドボックス）。本番に切り替えるときは本番の価格IDに差し替える。
+PRICES = '{"security":"price_1UZ5FkItSdAACkziCnDNrnY0","manner":"price_1UZ5GdItSdAACkziI2lpplsU","compliance":"price_1UZ5H8ItSdAACkziLWEL6coU","kaikei":"price_1UZ5ICItSdAACkzidsC7JRxn","kyoyo":"price_1UZ5IhItSdAACkzimuq2aRjk","kihon":"price_1UZ5JdItSdAACkziBM8YPNX7","boki2":"price_1UZ5K7ItSdAACkziXNbOJo2k","fp2":"price_1UZ5xEItSdAACkziLNeORBOc"}'
+
+# シークレット（ダッシュボードの「設定」→「変数とシークレット」で登録。ここには書かない）
+#   STRIPE_SECRET_KEY
+#   STRIPE_WEBHOOK_SECRET
+#   ADMIN_TOKEN

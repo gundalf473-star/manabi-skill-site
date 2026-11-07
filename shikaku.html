@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}a.brand{text-decoration:none}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>資格対策コース</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 紙芝居の木の舞台（butai）を中心に、コース地図 → 紙芝居 → 確認テスト → 結果 の4画面を切り替える */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1c2632; --muted:#5a6776; --line:#d3dae2;
+  --ai:#2a4a8a; --ai-soft:#e2e9f6; --ok:#2c7a4c; --ok-soft:#e1f1e7; --ng:#b03a3a; --ng-soft:#f7e3e3;
+  --wood:#8b5a33; --wood-dark:#5d3a1f; --paper:#fbf8f0; --card-ink:#2a241c; --card-muted:#6b5f50;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.site{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:24px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ai);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+.brand svg{width:26px;height:26px;flex:none}
+.crumb{font-size:13px;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:clamp(24px,5vw,32px)}
+h2{font-size:20px}
+.lead{color:var(--muted);margin:8px 0 0;max-width:36em}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;background:var(--ai);color:var(--surface);min-height:46px}
+.btn.sub{background:transparent;color:var(--ai);border:1.5px solid var(--ai)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* コース地図 */
+.overall{margin:20px 0 28px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.levels{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.lv{display:grid;grid-template-columns:44px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.lv:not(:last-child)::before{content:"";position:absolute;left:21px;top:46px;bottom:0;width:2px;background:var(--line)}
+.lv .num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:18px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+.lv.open .num{border-color:var(--ai);color:var(--ai)}
+.lv.done .num{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.lv .body{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.lv.locked .body{opacity:.55}
+.lv .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;letter-spacing:.05em;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.tag.locked{background:var(--line);color:var(--muted)}
+.tag.open{background:var(--ai-soft);color:var(--ai)}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+.lv p{margin:6px 0 12px;color:var(--muted);font-size:14px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.steps .btn{padding:9px 14px;min-height:40px;font-size:14px}
+.part{margin-top:32px}
+.tag.free{background:var(--ok-soft);color:var(--ok)}
+.tag.paid{background:var(--paper);color:var(--wood-dark);border:1px solid var(--wood)}
+.ptitle .tag{font-size:12px;font-family:var(--f-body)}
+.choose{background:var(--ai-soft);border-radius:12px;padding:14px 16px;margin:-6px 0 18px;font-size:14px}
+.choose p{margin:0 0 10px}
+.choose p:last-child{margin:0}
+.choose .hint{font-size:13px;color:var(--muted);align-self:center}
+.plan a{color:var(--ai);font-weight:700;margin-left:6px}
+.plan{border:1px dashed var(--wood);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);margin:-6px 0 18px}
+.ptitle{font-size:22px;display:flex;align-items:center;gap:12px}
+.ptitle::after{content:"";flex:1;height:1px;background:var(--line)}
+.cert{margin-top:4px;margin-bottom:8px;border:2px solid var(--ok);border-radius:12px;padding:20px;text-align:center;background:var(--ok-soft)}
+.cert h2{color:var(--ok)}
+
+/* 紙芝居の舞台 */
+.butai{background:linear-gradient(180deg,var(--wood),var(--wood-dark));border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(40,25,10,.25);margin:18px 0 14px}
+.butai .mado{background:var(--wood-dark);border-radius:6px;padding:6px;overflow:hidden;position:relative}
+.card{background:var(--paper);color:var(--card-ink);border-radius:4px;min-height:360px;padding:22px 22px 18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;cursor:pointer;user-select:none}
+.card .pg{font-size:12px;color:var(--card-muted);letter-spacing:.08em}
+.card .scene{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:center}
+.card svg{width:96px;height:96px;color:var(--card-ink)}
+.card h3{font-size:clamp(20px,4.6vw,26px)}
+.card .txt{font-family:var(--f-display);font-size:17px;line-height:1.9;margin:0}
+.card .say{font-family:var(--f-display);font-size:15px;border-left:3px solid var(--wood);padding:4px 0 4px 12px;margin:0;color:var(--card-ink)}
+.card .say b{font-size:12px;color:var(--card-muted);display:block;font-weight:500}
+.card .key{background:#fff3c4;color:var(--card-ink);padding:0 4px;border-radius:3px;font-weight:700}
+.card.out{animation:pull .32s ease-in forwards}
+.card.in{animation:slidein .3s ease-out}
+@keyframes pull{to{transform:translateX(-105%)}}
+@keyframes slidein{from{transform:translateX(30%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.card.out,.card.in{animation:none}}
+@media (max-width:520px){.card .scene{grid-template-columns:1fr}.card svg{width:72px;height:72px}.card{min-height:420px}}
+.dots{display:flex;gap:6px;justify-content:center;margin:4px 0 14px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ai)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+
+/* 確認テスト */
+.qbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+.qmeta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.qbox h2{font-size:19px;margin:10px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.6;display:grid;grid-template-columns:28px 1fr;gap:8px}
+.choice span.l{font-weight:700;color:var(--muted)}
+.choice:hover:not(:disabled){border-color:var(--ai)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.fb{margin-top:16px;padding:14px;border-radius:10px;font-size:15px}
+.fb.ok{background:var(--ok-soft)} .fb.ng{background:var(--ng-soft)}
+.fb strong{display:block;margin-bottom:4px}
+.fb.ok strong{color:var(--ok)} .fb.ng strong{color:var(--ng)}
+
+/* 結果 */
+.score{font-family:var(--f-display);font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.score small{font-size:20px;color:var(--muted)}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:18px;text-align:center}
+.result .row{justify-content:center;margin-top:18px}
+.review{text-align:left;margin-top:18px;font-size:14px;display:grid;gap:8px}
+.review div{padding:10px 12px;border-radius:8px;background:var(--bg)}
+.review .x{color:var(--ng);font-weight:700}
+.note{font-size:13px;color:var(--muted);margin-top:28px}
+</style>
+
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="6" width="56" height="42" rx="6" fill="#8b5a33"/><rect x="10" y="12" width="44" height="30" rx="2" fill="#fbf8f0"/><rect x="17" y="31" width="7" height="6" rx="1" fill="#2a4a8a"/><rect x="28.5" y="25" width="7" height="12" rx="1" fill="#2a4a8a"/><rect x="40" y="19" width="7" height="18" rx="1" fill="#2a4a8a"/><rect x="12" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/><rect x="45" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/></svg>まなびスキル研修室</a>
+    <div class="crumb" id="crumb">資格対策コース</div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const ICON = {
+  person:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="32" r="16"/><path d="M18 84c4-18 16-26 30-26s26 8 30 26"/></svg>',
+  lock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="20" y="42" width="56" height="42" rx="6"/><path d="M32 42V30a16 16 0 0 1 32 0v12"/><circle cx="48" cy="61" r="5"/><path d="M48 66v8"/></svg>',
+  key:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="30" cy="48" r="16"/><path d="M46 48h38M72 48v12M82 48v8"/></svg>',
+  phone:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="28" y="10" width="40" height="76" rx="7"/><path d="M42 76h12"/><path d="M38 40h20M38 50h20" stroke-dasharray="4 4"/></svg>',
+  pc:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="12" y="16" width="72" height="48" rx="4"/><path d="M34 82h28M48 64v18"/></svg>',
+  mail:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="10" y="22" width="76" height="52" rx="5"/><path d="M10 26l38 28 38-28"/></svg>',
+  link:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M42 54a14 14 0 0 0 20 0l12-12a14 14 0 0 0-20-20l-5 5"/><path d="M54 42a14 14 0 0 0-20 0L22 54a14 14 0 0 0 20 20l5-5"/></svg>',
+  alert:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 12L88 82H8z"/><path d="M48 38v20M48 68v2"/></svg>',
+  clip:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M64 34L38 60a8 8 0 0 0 12 12l30-30a16 16 0 0 0-22-22L26 52a24 24 0 0 0 34 34l20-20"/></svg>',
+  wifi:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M10 38a54 54 0 0 1 76 0M22 52a36 36 0 0 1 52 0M34 66a18 18 0 0 1 28 0"/><circle cx="48" cy="78" r="3"/></svg>',
+  eye:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M8 48s14-26 40-26 40 26 40 26-14 26-40 26S8 48 8 48z"/><circle cx="48" cy="48" r="11"/></svg>',
+  camera:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 30h18l6-10h24l6 10h18v48H12z"/><circle cx="48" cy="53" r="14"/></svg>',
+  usb:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="30" y="34" width="36" height="52" rx="5"/><path d="M36 34V12h24v22"/><path d="M42 20h4M50 20h4"/></svg>',
+  ai:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M14 20h68v44H42L26 78V64H14z"/><path d="M30 38h36M30 48h22" stroke-linecap="round"/></svg>',
+  money:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="44" rx="5"/><circle cx="48" cy="48" r="11"/><path d="M20 36v24M76 36v24"/></svg>',
+  shield:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 10l32 12v24c0 20-14 34-32 40-18-6-32-20-32-40V22z"/><path d="M34 48l10 10 18-20"/></svg>',
+  plug:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M14 48h22M60 48h22"/><rect x="36" y="34" width="24" height="28" rx="4"/><path d="M42 18l-6 10M58 78l6-10"/></svg>',
+  qr:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><rect x="14" y="14" width="26" height="26"/><rect x="56" y="14" width="26" height="26"/><rect x="14" y="56" width="26" height="26"/><path d="M56 56h10v10H56zM72 72h10v10H72zM72 56h10M56 76h6" stroke-linecap="round"/></svg>',
+  chat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M10 18h50v32H30L18 60V50h-8z"/><path d="M68 34h18v32h-8v10L66 66H40V58"/></svg>',
+  cloud:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M28 72a18 18 0 0 1-2-36 24 24 0 0 1 46 6 15 15 0 0 1-2 30z"/><path d="M48 62V44M40 52l8-8 8 8" stroke-linecap="round"/></svg>',
+  paper:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M24 10h34l16 16v34H24z"/><path d="M58 10v16h16"/><path d="M18 66h60v10H18zM28 76v12M40 76v12M52 76v12M64 76v12"/></svg>',
+  update:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M78 48a30 30 0 1 1-9-21"/><path d="M72 14v14H58"/><path d="M48 34v16l10 6"/></svg>',
+  voice:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="36" y="12" width="24" height="44" rx="12"/><path d="M24 46a24 24 0 0 0 48 0M48 70v14M36 84h24"/><path d="M80 30l8-4M82 46h8M80 62l8 4"/></svg>',
+  shirt:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M34 12l14 10 14-10 22 12-8 18-10-4v46H30V38l-10 4-8-18z"/><path d="M48 22v30"/></svg>',
+  speech:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 18h72v46H44L26 80V64H12z"/><circle cx="32" cy="41" r="2.5" fill="currentColor"/><circle cx="48" cy="41" r="2.5" fill="currentColor"/><circle cx="64" cy="41" r="2.5" fill="currentColor"/></svg>',
+  bow:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="62" cy="26" r="10"/><path d="M54 36L34 52v34M34 52l-2 34M48 44l8 16"/><path d="M16 86h64" stroke-dasharray="4 5"/></svg>',
+  clock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="50" r="34"/><path d="M48 30v20l14 9M40 10h16"/></svg>',
+  star:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 12l11 23 25 3-18 17 5 25-23-12-23 12 5-25-18-17 25-3z"/></svg>',
+  up:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="62" r="10"/><path d="M14 88c2-10 8-14 16-14s14 4 16 14"/><path d="M66 70V20M52 34l14-14 14 14"/></svg>',
+  down:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="42" r="10"/><path d="M14 68c2-10 8-14 16-14s14 4 16 14"/><path d="M66 20v50M52 56l14 14 14-14"/></svg>',
+  building:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M18 86V14h40v72M58 36h20v50M10 86h76"/><path d="M28 26h6M42 26h6M28 40h6M42 40h6M28 54h6M42 54h6M34 86V70h10v16" stroke-linecap="round"/></svg>',
+  note:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="18" y="12" width="52" height="72" rx="4"/><path d="M30 30h28M30 42h28M30 54h16"/><path d="M78 30L56 70l-6 6 2-8 22-40z"/></svg>',
+  card:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="46" rx="4"/><path d="M22 40h30M22 52h20M22 62h26"/><circle cx="70" cy="46" r="7"/></svg>',
+  seat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="30" y="34" width="36" height="28" rx="3"/><rect x="36" y="14" width="24" height="12" rx="3"/><rect x="36" y="70" width="24" height="12" rx="3"/><path d="M80 30v40h8V30z"/><path d="M10 48h12" stroke-dasharray="3 4"/></svg>',
+  scale:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12v72M30 84h36M18 24h60"/><path d="M18 24L8 52h20zM78 24L68 52h20z"/></svg>',
+  chart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v72h72"/><path d="M22 66l18-20 14 12 24-30"/><path d="M64 28h14v14"/></svg>',
+  gift:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="14" y="38" width="68" height="16"/><rect x="20" y="54" width="56" height="30"/><path d="M48 38v46M48 38c-6-14-24-16-22-4M48 38c6-14 24-16 22-4"/></svg>',
+  heart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 82S12 60 12 36a18 18 0 0 1 36-6 18 18 0 0 1 36 6c0 24-36 46-36 46z"/></svg>',
+  book:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 24c-10-8-24-8-36-4v58c12-4 26-4 36 4 10-8 24-8 36-4V20c-12-4-26-4-36 4z"/><path d="M48 24v58"/></svg>',
+  report:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="12" width="56" height="74" rx="5"/><path d="M32 30h32M32 42h32M32 54h20"/><path d="M58 68l6 6 10-12"/></svg>'
+};
+const YAMA = '山本さん（資格取得の先輩）';
+const SATO = '佐藤さん（新人）';
+const COURSE = [{"id":1,"part":"ITパスポート","title":"試験のしくみとストラテジ系","sub":"出題分野・合格基準・SWOT分析・PDCA","mins":6,"slides":[{"i":"pc","h":"ITパスポートってどんな試験？","t":"ITを使って働く人みんなに必要な基礎知識を問う<span class=\"key\">国家試験</span>です。パソコンで受けるCBT方式で、全国のテスト会場でほぼ毎日受けられます。","who":"山本さん（資格取得の先輩）","say":"社会人が最初に取る資格として人気があります。"},{"i":"paper","h":"出題は3つの分野","t":"経営や法律の<span class=\"key\">ストラテジ系</span>、仕事の進め方の<span class=\"key\">マネジメント系</span>、ITのしくみの<span class=\"key\">テクノロジ系</span>。試験は120分で100問です。","who":"佐藤さん（新人）","say":"ITだけじゃなく、経営のことも出るんですね。"},{"i":"star","h":"合格基準","t":"1000点満点で<span class=\"key\">総合600点以上</span>、さらに<span class=\"key\">3分野それぞれ300点以上</span>が必要です。得意な分野だけでは合格できないので、まんべんなく学びます。","who":"山本さん（資格取得の先輩）","say":"苦手分野を作らないのがコツです。"},{"i":"chart","h":"ストラテジ系の定番「SWOT分析」","t":"会社の状況を、内部の<span class=\"key\">強み（S）と弱み（W）</span>、外部の<span class=\"key\">機会（O）と脅威（T）</span>の4つに分けて整理する方法です。","who":"佐藤さん（新人）","say":"「外部」は、市場やライバルのことですね。"},{"i":"update","h":"改善のサイクル「PDCA」","t":"<span class=\"key\">Plan（計画）→ Do（実行）→ Check（評価）→ Act（改善）</span>をくり返して、仕事を少しずつよくしていく考え方です。","who":"山本さん（資格取得の先輩）","say":"試験でも仕事でも、よく出てくる言葉です。"},{"i":"shield","h":"まとめ","t":"① IT活用の基礎を問う国家試験　② 3分野・100問・120分　③ 総合600点以上かつ各分野300点以上　④ SWOTは内部2つ・外部2つ　⑤ PDCAで改善をくり返す。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"ITパスポート試験の出題分野に含まれないものは？","c":["ストラテジ系","マネジメント系","デザイン系"],"a":2,"e":"出題分野はストラテジ系・マネジメント系・テクノロジ系の3つです。"},{"q":"ITパスポート試験の合格基準として正しいのは？","c":["総合600点以上、かつ各分野300点以上","総合600点以上のみ","各分野500点以上のみ"],"a":0,"e":"総合点だけでなく、3分野それぞれに基準点があります。"},{"q":"SWOT分析で、外部の要因にあたるものの組み合わせは？","c":["強み（S）と弱み（W）","機会（O）と脅威（T）","強み（S）と機会（O）"],"a":1,"e":"強み・弱みは会社の内部、機会・脅威は市場やライバルなどの外部の要因です。"},{"q":"PDCAの「C」は何を表す？","c":["Change（変更）","Create（作成）","Check（評価）"],"a":2,"e":"Plan（計画）→ Do（実行）→ Check（評価）→ Act（改善）の順です。"},{"q":"「新しい競合企業が市場に参入してきた」は、SWOT分析のどれにあたる？","c":["脅威（T）","弱み（W）","機会（O）"],"a":0,"e":"外部からの、会社にとってよくない変化なので「脅威」です。"}]},{"id":2,"part":"ITパスポート","title":"ストラテジ系　法務の基本","sub":"著作権・産業財産権・不正アクセス禁止法・派遣と請負・個人情報","mins":7,"slides":[{"i":"book","h":"著作権は「作った時点」で生まれる","t":"文章・写真・音楽・プログラムなどの<span class=\"key\">著作権</span>は、作った時点で自動的に生まれ、登録の手続きはいりません。ただし、プログラム言語やアルゴリズム（解き方の考え方）そのものは保護されません。","who":"山本さん（資格取得の先輩）","say":"ITパスポートでは、法律の問題もよく出ます。"},{"i":"card","h":"産業財産権は「登録」が必要","t":"発明を守る<span class=\"key\">特許権</span>、デザインを守る<span class=\"key\">意匠権</span>、商品名やロゴを守る<span class=\"key\">商標権</span>、小さな発明を守る実用新案権。これらは特許庁に出願し、登録されて初めて権利になります。","who":"佐藤さん（新人）","say":"著作権との違いは、登録がいるかどうかですね。"},{"i":"lock","h":"不正アクセス禁止法","t":"他人のIDやパスワードを無断で使ってログインすることは、<span class=\"key\">不正アクセス禁止法</span>で禁止されています。他人のIDやパスワードを、本人の許可なく第三者に教えることも違反です。","who":"山本さん（資格取得の先輩）","say":"「ちょっと見るだけ」でも違反になります。"},{"i":"person","h":"派遣と請負のちがい","t":"<span class=\"key\">労働者派遣</span>では、働く人は派遣先の会社から仕事の指示を受けます。<span class=\"key\">請負</span>では、仕事を引き受けた会社が自分の社員に指示を出し、成果物を完成させる責任を負います。","who":"佐藤さん（新人）","say":"だれが指示を出すかがポイントなんですね。"},{"i":"paper","h":"個人情報保護法","t":"個人情報は、決めた目的の範囲で使い、<span class=\"key\">本人の同意なく第三者に渡すことは原則として禁止</span>です。病歴など特に配慮が必要な情報は、要配慮個人情報として、取得にも本人の同意が必要です。","who":"山本さん（資格取得の先輩）","say":"コンプライアンスコースで学んだ内容と重なりますね。"},{"i":"star","h":"まとめ","t":"① 著作権は作った時点で発生　② 特許権・意匠権・商標権は登録が必要　③ 他人のIDでのログインは不正アクセス　④ 派遣は派遣先が、請負は請け負った会社が指示　⑤ 個人情報の第三者提供は原則本人の同意が必要。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"著作権について正しい説明は？","c":["特許庁に登録して初めて発生する","作った時点で自動的に発生する","プログラムには著作権がない"],"a":1,"e":"著作権は登録不要で、作った時点で発生します。プログラムも著作物です。"},{"q":"新しい商品名やロゴを守るための権利は？","c":["特許権","意匠権","商標権"],"a":2,"e":"商品名やロゴは商標権で守ります。意匠権はデザイン、特許権は発明を守ります。"},{"q":"同僚のIDとパスワードを無断で使って社内システムにログインしました。","c":["社内なので問題ない","不正アクセス禁止法に違反する","すぐにログアウトすれば問題ない"],"a":1,"e":"他人のIDを無断で使うログインは、不正アクセス禁止法違反です。"},{"q":"労働者派遣で、派遣された人に仕事の指示を出すのは？","c":["派遣先の会社","派遣元の会社","だれも指示しない"],"a":0,"e":"派遣では派遣先が指示を出します。請負では、請け負った会社が自社の社員に指示を出します。"},{"q":"特許権・意匠権・商標権などをまとめて何という？","c":["著作権","産業財産権","肖像権"],"a":1,"e":"特許権・実用新案権・意匠権・商標権を、まとめて産業財産権といいます。"}]},{"id":3,"part":"ITパスポート","title":"ストラテジ系　経営戦略と新しい技術","sub":"PPM・マーケティングの4P・KGIとKPI・AI・IoT・RPA","mins":7,"slides":[{"i":"chart","h":"事業を4つに分ける「PPM」","t":"市場の成長率とシェアで事業を分けます。成長率もシェアも高い<span class=\"key\">花形</span>、成長率は低いがシェアが高く稼げる<span class=\"key\">金のなる木</span>、成長率は高いがシェアが低い<span class=\"key\">問題児</span>、どちらも低い<span class=\"key\">負け犬</span>です。","who":"山本さん（資格取得の先輩）","say":"名前がユニークなので覚えやすいですよ。"},{"i":"paper","h":"マーケティングの4P","t":"売れるしくみを考えるときの4つの視点です。<span class=\"key\">Product（製品）・Price（価格）・Place（流通）・Promotion（販売促進）</span>。この4つを組み合わせて考えます。","who":"佐藤さん（新人）","say":"Placeは「どこで売るか」ですね。"},{"i":"star","h":"KGIとKPI","t":"最終的な目標を<span class=\"key\">KGI</span>（重要目標達成指標）、そこに向かう途中の進み具合を測る指標を<span class=\"key\">KPI</span>（重要業績評価指標）といいます。「年間売上1億円」がKGIなら、「毎月の新規契約数」がKPIです。","who":"山本さん（資格取得の先輩）","say":"仕事の目標管理でもよく使われます。"},{"i":"ai","h":"AIとIoT","t":"<span class=\"key\">AI</span>の代表的な技術である機械学習は、大量のデータからコンピュータが規則性を学ぶしくみです。<span class=\"key\">IoT</span>は家電や工場の機械などのモノがインターネットにつながり、データをやり取りするしくみです。","who":"佐藤さん（新人）","say":"集まった大量のデータを、ビッグデータというんですね。"},{"i":"pc","h":"RPAで作業を自動化","t":"データの入力や転記など、パソコンで行う<span class=\"key\">決まった手順の作業をソフトウェアのロボットで自動化</span>するのがRPAです。働き方改革や業務の効率化で注目されています。","who":"山本さん（資格取得の先輩）","say":"人は、考える仕事に時間を使えるようになります。"},{"i":"star","h":"まとめ","t":"① PPMは花形・金のなる木・問題児・負け犬　② 4Pは製品・価格・流通・販売促進　③ KGIは最終目標、KPIは途中の指標　④ 機械学習はデータから学ぶ、IoTはモノがつながる　⑤ RPAで定型作業を自動化。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"PPMで、市場成長率は低いがシェアが高く、安定して稼げる事業は？","c":["花形","金のなる木","問題児"],"a":1,"e":"金のなる木は、大きな投資をしなくても利益を生む事業です。"},{"q":"マーケティングの4Pに含まれないものは？","c":["Price（価格）","Place（流通）","People（人材）"],"a":2,"e":"4PはProduct・Price・Place・Promotionです。"},{"q":"「年間売上1億円」という最終目標に対して、「毎月の新規契約数」は何にあたる？","c":["KGI","KPI","ROI"],"a":1,"e":"最終目標がKGI、途中の進み具合を測る指標がKPIです。"},{"q":"家電や機械などのモノがインターネットにつながるしくみは？","c":["IoT","RPA","VPN"],"a":0,"e":"IoT（Internet of Things）は、モノのインターネットとも呼ばれます。"},{"q":"パソコンでの決まった手順の作業を、ソフトウェアのロボットで自動化するしくみは？","c":["AI","RPA","CRM"],"a":1,"e":"RPA（Robotic Process Automation）は、定型作業の自動化に使われます。"}]},{"id":4,"part":"ITパスポート","title":"マネジメント系とテクノロジ系","sub":"WBS・SLA・2進数・情報セキュリティの3要素","mins":7,"slides":[{"i":"paper","h":"作業を分けて考える「WBS」","t":"プロジェクトの作業を、<span class=\"key\">細かい単位に分けて木のように整理</span>したものをWBSといいます。作業のもれを防ぎ、担当や期間を決めやすくなります。","who":"山本さん（資格取得の先輩）","say":"大きな仕事も、分けてしまえばこわくありません。"},{"i":"card","h":"サービスの約束「SLA」","t":"ITサービスを提供する側と利用する側で、<span class=\"key\">サービスの品質（稼働率や対応時間など）を取り決めた合意</span>をSLAといいます。","who":"佐藤さん（新人）","say":"「何時間以内に直します」という約束ですね。"},{"i":"pc","h":"コンピュータは2進数","t":"コンピュータは0と1だけで数を表します。これを<span class=\"key\">2進数</span>といいます。2進数の「101」は、4＋0＋1で10進数の<span class=\"key\">5</span>になります。","who":"山本さん（資格取得の先輩）","say":"右から1、2、4、8…と、位の重みが倍になります。"},{"i":"lock","h":"情報セキュリティの3要素","t":"<span class=\"key\">機密性</span>（許可された人だけが見られる）、<span class=\"key\">完全性</span>（内容が正しく改ざんされていない）、<span class=\"key\">可用性</span>（必要なときに使える）。この3つを守ることが情報セキュリティです。","who":"佐藤さん（新人）","say":"セキュリティコースで学んだことが、ここでも役立ちますね。"},{"i":"chart","h":"よく出る用語を押さえる","t":"AI、IoT（モノのインターネット）、クラウドなど、<span class=\"key\">新しい技術の用語</span>もよく出題されます。ニュースで聞く言葉の意味を調べる習慣をつけましょう。","who":"山本さん（資格取得の先輩）","say":"用語は毎日少しずつ覚えるのが近道です。"},{"i":"shield","h":"まとめ","t":"① WBSで作業を分ける　② SLAはサービス品質の合意　③ 2進数は位が倍ずつ　④ セキュリティは機密性・完全性・可用性　⑤ 新しい技術の用語にも注目。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"プロジェクトの作業を細かく分けて、木のように整理したものは？","c":["SLA","WBS","PDCA"],"a":1,"e":"WBSは作業を分解して整理したものです。作業のもれを防げます。"},{"q":"SLAの説明として正しいのは？","c":["サービスの品質について、提供者と利用者が取り決めた合意","ソフトウェアの使用許諾契約","社内の情報セキュリティのルール"],"a":0,"e":"稼働率や障害対応の時間など、サービスの品質を取り決めたものです。"},{"q":"2進数の「110」を10進数にすると？","c":["3","5","6"],"a":2,"e":"4＋2＋0＝6です。位の重みは右から1、2、4です。"},{"q":"「必要なときに、システムやデータを使える状態にしておくこと」は、情報セキュリティのどの要素？","c":["機密性","可用性","完全性"],"a":1,"e":"使いたいときに使えることを「可用性」といいます。"},{"q":"「データが改ざんされず、正しい状態に保たれていること」は？","c":["完全性","機密性","可用性"],"a":0,"e":"内容の正しさを守ることを「完全性」といいます。"}]},{"id":5,"part":"ITパスポート","title":"テクノロジ系　コンピュータとネットワーク","sub":"CPU・メモリ・記憶装置・IPアドレスとDNS・無線LAN","mins":7,"slides":[{"i":"pc","h":"コンピュータの頭脳「CPU」","t":"CPUは、プログラムの命令を読んで<span class=\"key\">計算（演算）や各装置への指示（制御）</span>を行う部品です。クロック周波数が高いほど、1秒間に多くの処理ができます。","who":"山本さん（資格取得の先輩）","say":"テクノロジ系は、パソコンの中身から始めましょう。"},{"i":"note","h":"メモリと記憶装置","t":"作業中のデータを一時的に置く<span class=\"key\">RAM</span>は、電源を切ると内容が消えます。<span class=\"key\">ROM</span>は電源を切っても消えません。長く保存するには、SSDやHDDなどの補助記憶装置を使います。","who":"佐藤さん（新人）","say":"RAMは作業机、SSDは本棚のようなものですね。"},{"i":"usb","h":"つなぐためのインタフェース","t":"機器をつなぐ決まりを<span class=\"key\">インタフェース</span>といいます。ケーブルでつなぐUSB、近くの機器と無線でつなぐ<span class=\"key\">Bluetooth</span>などがあります。","who":"山本さん（資格取得の先輩）","say":"マウスやイヤホンでよく使われていますね。"},{"i":"link","h":"IPアドレスとDNS","t":"インターネットにつながる機器には、住所にあたる<span class=\"key\">IPアドレス</span>がつきます。「example.co.jp」のような名前をIPアドレスに変換するしくみが<span class=\"key\">DNS</span>です。","who":"佐藤さん（新人）","say":"名前で覚えて、番号で通信するんですね。"},{"i":"wifi","h":"無線LANは暗号化が大切","t":"無線LANの通信は電波で飛ぶため、のぞかれないように暗号化します。現在は<span class=\"key\">WPA3</span>（またはWPA2）を使います。古い方式のWEPは、すぐに解読されるため使いません。","who":"山本さん（資格取得の先輩）","say":"セキュリティコースの公衆Wi-Fiの話とつながりますね。"},{"i":"star","h":"まとめ","t":"① CPUは演算と制御　② RAMは電源を切ると消える、ROMは消えない　③ USBやBluetoothで機器をつなぐ　④ DNSは名前をIPアドレスに変換　⑤ 無線LANはWPA3などで暗号化。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"電源を切ると内容が消えてしまうメモリは？","c":["ROM","RAM","SSD"],"a":1,"e":"RAMは作業中のデータを一時的に置くメモリで、電源を切ると消えます。"},{"q":"プログラムの命令にしたがって、演算と制御を行う装置は？","c":["CPU","HDD","ディスプレイ"],"a":0,"e":"CPUはコンピュータの頭脳にあたる部品です。"},{"q":"ドメイン名をIPアドレスに変換するしくみは？","c":["DNS","USB","RPA"],"a":0,"e":"DNSのおかげで、人は名前でWebサイトにアクセスできます。"},{"q":"無線LANの暗号化方式として、今使うべきものは？","c":["WEP","暗号化しない","WPA3"],"a":2,"e":"WEPはすぐに解読されてしまうため、WPA3（またはWPA2）を使います。"},{"q":"近くの機器と無線でつなぐインタフェースは？","c":["Bluetooth","USB","HDMI"],"a":0,"e":"Bluetoothは、マウスやイヤホンなど近くの機器との無線接続に使われます。"}]},{"id":6,"part":"ITパスポート","title":"テクノロジ系　情報セキュリティ","sub":"マルウェア・攻撃の種類・対策・リスク対応・ISMS","mins":7,"slides":[{"i":"alert","h":"悪意のあるソフト「マルウェア」","t":"ウイルス、ワーム、トロイの木馬、ファイルを使えなくしてお金を求める<span class=\"key\">ランサムウェア</span>など、悪意のあるソフトをまとめて<span class=\"key\">マルウェア</span>といいます。","who":"山本さん（資格取得の先輩）","say":"セキュリティは、ITパスポートでいちばん出題が多い分野のひとつです。"},{"i":"mail","h":"よく出る攻撃の種類","t":"にせサイトに誘導して情報を盗む<span class=\"key\">フィッシング</span>、大量のアクセスでサービスを止める<span class=\"key\">DoS攻撃</span>、入力欄に命令を入れてデータベースを不正に操作する<span class=\"key\">SQLインジェクション</span>などがあります。","who":"佐藤さん（新人）","say":"人をだますソーシャルエンジニアリングもありましたね。"},{"i":"shield","h":"技術的な対策","t":"外部からの不正な通信を防ぐ<span class=\"key\">ファイアウォール</span>、ウイルス対策ソフト、ソフトの更新、そして<span class=\"key\">多要素認証</span>や指紋・顔などの<span class=\"key\">生体認証</span>が代表的な対策です。","who":"山本さん（資格取得の先輩）","say":"ひとつの対策だけに頼らず、重ねて守ります。"},{"i":"scale","h":"リスクへの4つの対応","t":"リスクの原因となる活動をやめる<span class=\"key\">回避</span>、対策で起こりにくくする<span class=\"key\">低減</span>、保険や外部委託で他に移す<span class=\"key\">移転</span>、影響が小さいので受け入れる<span class=\"key\">受容</span>の4つです。","who":"佐藤さん（新人）","say":"保険に入るのは「移転」なんですね。"},{"i":"update","h":"ISMSとセキュリティポリシー","t":"組織全体で情報セキュリティを管理するしくみを<span class=\"key\">ISMS</span>といい、<span class=\"key\">PDCA</span>をくり返して改善を続けます。会社としての方針や守るべきルールをまとめたものが、情報セキュリティポリシーです。","who":"山本さん（資格取得の先輩）","say":"これでITパスポート入門はおしまい。最後のテストです。"},{"i":"star","h":"まとめ","t":"① マルウェアはウイルス・ワーム・ランサムウェアなど　② フィッシング・DoS攻撃・SQLインジェクション　③ ファイアウォール・多要素認証・生体認証　④ リスク対応は回避・低減・移転・受容　⑤ ISMSはPDCAで改善。","who":"山本さん（資格取得の先輩）","say":"次は、基本情報技術者試験に挑戦してみましょう。"}],"quiz":[{"q":"大量のアクセスを送りつけて、サービスを止めてしまう攻撃は？","c":["フィッシング","DoS攻撃","SQLインジェクション"],"a":1,"e":"DoS攻撃は、大量の通信でサーバーに負荷をかけ、サービスを止める攻撃です。"},{"q":"入力欄に不正な命令を入れて、データベースを操作する攻撃は？","c":["SQLインジェクション","ワーム","トロイの木馬"],"a":0,"e":"SQLインジェクションは、入力内容の確認が不十分なWebサイトを狙います。"},{"q":"情報漏えいに備えてサイバー保険に入るのは、リスク対応のどれ？","c":["回避","受容","移転"],"a":2,"e":"保険や外部委託でリスクを他に移すのは「移転」です。"},{"q":"ファイルを使えなくして、元に戻す代わりにお金を求めるマルウェアは？","c":["スパイウェア","ランサムウェア","アドウェア"],"a":1,"e":"ランサムウェアは「身代金」を求めるマルウェアです。"},{"q":"ISMSで、情報セキュリティの改善を続けるためにくり返すサイクルは？","c":["PDCA","SWOT","PPM"],"a":0,"e":"ISMSでは、Plan・Do・Check・Actをくり返して改善します。"}]},{"id":7,"part":"簿記3級","title":"簿記のしくみと仕訳","sub":"試験の概要・5つの要素・借方と貸方","mins":7,"slides":[{"i":"note","h":"簿記は会社の家計簿","t":"簿記は、会社のお金やモノの動きを<span class=\"key\">決まったルールで記録する方法</span>です。日商簿記3級は、経理以外の仕事でも役立つ人気の資格です。","who":"山本さん（資格取得の先輩）","say":"数字に強くなると、会議の資料も読みやすくなりますよ。"},{"i":"clock","h":"試験の概要","t":"日商簿記3級は試験時間<span class=\"key\">60分</span>、100点満点で<span class=\"key\">70点以上</span>が合格です。パソコンで受けるネット試験と、決まった日に行う統一試験があります。","who":"佐藤さん（新人）","say":"ネット試験なら、自分の都合で日を選べますね。"},{"i":"scale","h":"5つのグループ","t":"取引はすべて、<span class=\"key\">資産・負債・純資産・収益・費用</span>の5つのグループに分けて記録します。現金や商品は資産、借りたお金は負債、売上は収益です。","who":"山本さん（資格取得の先輩）","say":"まずはこの5つを覚えましょう。"},{"i":"paper","h":"仕訳は左と右に書く","t":"取引を左右に分けて書くことを<span class=\"key\">仕訳</span>といいます。左側を<span class=\"key\">借方（かりかた）</span>、右側を<span class=\"key\">貸方（かしかた）</span>といい、左右の金額は必ず同じになります。","who":"佐藤さん（新人）","say":"「借りる」「貸す」の意味は気にしなくていいんですね。"},{"i":"money","h":"増えたらどっち？","t":"<span class=\"key\">資産と費用は、増えたら借方（左）</span>。負債・純資産・収益は、増えたら貸方（右）です。例：現金で商品10,000円を仕入れた→ 借方「仕入 10,000」／貸方「現金 10,000」。","who":"山本さん（資格取得の先輩）","say":"仕入は費用、現金は資産が減るので右です。"},{"i":"star","h":"まとめ","t":"① 簿記は取引の記録　② 3級は60分・70点以上で合格　③ 資産・負債・純資産・収益・費用　④ 左が借方、右が貸方　⑤ 資産と費用は増えたら左。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"日商簿記3級の合格基準は？","c":["60点以上","70点以上","80点以上"],"a":1,"e":"100点満点で70点以上が合格です。"},{"q":"仕訳で、左側を何という？","c":["借方","貸方","元帳"],"a":0,"e":"左側が借方（かりかた）、右側が貸方（かしかた）です。"},{"q":"「銀行から借りたお金（借入金）」は、5つのグループのどれ？","c":["資産","収益","負債"],"a":2,"e":"あとで返す義務があるものは負債です。"},{"q":"資産が増えたとき、仕訳ではどちらに書く？","c":["借方（左）","貸方（右）","どちらでもよい"],"a":0,"e":"資産と費用は、増えたら借方（左）に書きます。"},{"q":"「商品を5,000円で売り、代金を現金で受け取った」。正しい仕訳は？","c":["借方 売上 5,000／貸方 現金 5,000","借方 現金 5,000／貸方 売上 5,000","借方 仕入 5,000／貸方 現金 5,000"],"a":1,"e":"現金（資産）が増えるので借方、売上（収益）が増えるので貸方です。"}]},{"id":8,"part":"簿記3級","title":"よく出る取引と決算書","sub":"掛け取引・預金・貸借対照表・損益計算書","mins":7,"slides":[{"i":"card","h":"あとで払う・受け取る「掛け」","t":"代金をあとで受け取る約束で売ることを<span class=\"key\">掛け売り</span>といい、その権利を<span class=\"key\">売掛金</span>（資産）といいます。あとで払う約束の仕入れは<span class=\"key\">買掛金</span>（負債）です。","who":"山本さん（資格取得の先輩）","say":"会社どうしの取引は、ほとんどが掛けです。"},{"i":"paper","h":"掛け取引の仕訳","t":"商品8,000円を掛けで売った→ 借方「売掛金 8,000」／貸方「売上 8,000」。後日、代金を現金で受け取った→ 借方「現金 8,000」／貸方「売掛金 8,000」。","who":"佐藤さん（新人）","say":"受け取ったら売掛金が減るので右なんですね。"},{"i":"building","h":"銀行の預金","t":"普通預金や当座預金も<span class=\"key\">資産</span>です。現金を普通預金に預けた→ 借方「普通預金」／貸方「現金」。資産の中で形が変わっただけです。","who":"山本さん（資格取得の先輩）","say":"お金の置き場所が変わった、と考えましょう。"},{"i":"scale","h":"貸借対照表（B/S）","t":"ある時点で、会社が<span class=\"key\">どれだけの財産と借金を持っているか</span>を表す表です。左に資産、右に負債と純資産を書き、左右の合計は同じになります。","who":"佐藤さん（新人）","say":"会社の「財産の一覧表」ですね。"},{"i":"chart","h":"損益計算書（P/L）","t":"一定の期間に、<span class=\"key\">どれだけもうけたか</span>を表す表です。収益から費用を引いた残りが利益になります。","who":"山本さん（資格取得の先輩）","say":"B/Sは「ある時点」、P/Lは「期間」。ここが大事です。"},{"i":"star","h":"まとめ","t":"① 売掛金は資産、買掛金は負債　② 代金を受け取ったら売掛金が減る　③ 預金も資産　④ B/Sはある時点の財産　⑤ P/Lは期間のもうけ。","who":"山本さん（資格取得の先輩）","say":"簿記3級入門の最後のテストです。"}],"quiz":[{"q":"「売掛金」は、5つのグループのどれ？","c":["負債","資産","収益"],"a":1,"e":"あとで代金を受け取れる権利なので、資産です。"},{"q":"「商品3,000円を掛けで仕入れた」。正しい仕訳は？","c":["借方 仕入 3,000／貸方 買掛金 3,000","借方 買掛金 3,000／貸方 仕入 3,000","借方 仕入 3,000／貸方 売掛金 3,000"],"a":0,"e":"仕入（費用）が増えるので借方、あとで払う義務の買掛金（負債）が増えるので貸方です。"},{"q":"「売掛金6,000円を現金で受け取った」。正しい仕訳は？","c":["借方 売掛金 6,000／貸方 現金 6,000","借方 現金 6,000／貸方 売上 6,000","借方 現金 6,000／貸方 売掛金 6,000"],"a":2,"e":"現金（資産）が増えて借方、売掛金（資産）が減って貸方です。売上はすでに記録ずみです。"},{"q":"会社の「ある時点の財産と借金」を表す表は？","c":["損益計算書","貸借対照表","現金出納帳"],"a":1,"e":"貸借対照表（B/S）は、ある時点の資産・負債・純資産を表します。"},{"q":"損益計算書で、利益はどうやって求める？","c":["資産 － 負債","収益 － 費用","収益 ＋ 費用"],"a":1,"e":"一定の期間の収益から費用を引いたものが利益です。"}]},{"id":9,"part":"FP3級","title":"FPの全体像とライフプラン","sub":"試験の概要・6分野・72の法則・公的年金","mins":6,"slides":[{"i":"heart","h":"FPはお金の総合知識","t":"FP（ファイナンシャル・プランニング）技能検定は、家計・保険・税金・年金など<span class=\"key\">暮らしのお金の知識</span>を問う国家検定です。自分の生活にもすぐ役立ちます。","who":"山本さん（資格取得の先輩）","say":"仕事にも家計にも役立つ、おすすめの資格です。"},{"i":"paper","h":"学ぶのは6つの分野","t":"<span class=\"key\">ライフプランニング・リスク管理（保険）・金融資産運用・タックスプランニング（税金）・不動産・相続と事業承継</span>の6分野です。","who":"佐藤さん（新人）","say":"範囲は広いけれど、身近な話題が多いですね。"},{"i":"pc","h":"試験の形式","t":"3級はパソコンで受けるCBT方式で、<span class=\"key\">学科と実技</span>があります。どちらも<span class=\"key\">6割以上の正解</span>で合格です。","who":"山本さん（資格取得の先輩）","say":"学科と実技の両方に合格すると、3級合格です。"},{"i":"chart","h":"お金が2倍になる「72の法則」","t":"<span class=\"key\">72 ÷ 年利（％）＝ お金がおよそ2倍になる年数</span>。年3％で運用すると、72÷3で約24年で2倍になります。複利の力を知る便利な目安です。","who":"佐藤さん（新人）","say":"金利の大切さがよく分かりますね。"},{"i":"shield","h":"公的年金のしくみ","t":"日本に住む<span class=\"key\">20歳以上60歳未満</span>の人は、国民年金に加入します。会社員は、さらに厚生年金にも加入します。これを「2階建て」の年金といいます。","who":"山本さん（資格取得の先輩）","say":"給与明細の天引きの意味が分かるようになりますよ。"},{"i":"star","h":"まとめ","t":"① 暮らしのお金の国家検定　② 6つの分野　③ 学科・実技とも6割以上で合格　④ 72の法則で2倍になる年数　⑤ 国民年金＋厚生年金の2階建て。","who":"山本さん（資格取得の先輩）","say":"では、確認テストです。"}],"quiz":[{"q":"FP技能検定の6分野に含まれないものは？","c":["タックスプランニング","人事労務管理","相続・事業承継"],"a":1,"e":"6分野は、ライフプランニング・リスク管理・金融資産運用・タックスプランニング・不動産・相続事業承継です。"},{"q":"FP3級の合格基準は？","c":["学科・実技とも6割以上","学科・実技とも8割以上","学科だけ7割以上"],"a":0,"e":"学科と実技の両方で、6割以上の正解が必要です。"},{"q":"年利4％で運用したとき、お金がおよそ2倍になるのは何年後？（72の法則）","c":["約12年","約18年","約28年"],"a":1,"e":"72÷4＝18で、約18年です。"},{"q":"国民年金に加入するのは、原則として何歳から何歳まで？","c":["18歳以上65歳未満","20歳以上65歳未満","20歳以上60歳未満"],"a":2,"e":"日本に住む20歳以上60歳未満の人が加入します。"},{"q":"会社員が国民年金に加えて加入する公的年金は？","c":["厚生年金","個人年金保険","企業年金だけ"],"a":0,"e":"会社員は国民年金と厚生年金の「2階建て」です。"}]},{"id":10,"part":"FP3級","title":"保険・税金・資産運用","sub":"生命保険の種類・所得税・新しいNISA","mins":7,"slides":[{"i":"shield","h":"生命保険の3つの基本形","t":"決まった期間だけ保障する<span class=\"key\">定期保険</span>、一生涯保障する<span class=\"key\">終身保険</span>、満期に生きていれば満期保険金が受け取れる<span class=\"key\">養老保険</span>。この3つが基本です。","who":"山本さん（資格取得の先輩）","say":"保険の見直しにも、この知識が役立ちます。"},{"i":"money","h":"定期保険は保険料が安め","t":"同じ保障額なら、一般に<span class=\"key\">定期保険は保険料が安く</span>、貯蓄の性格はほとんどありません。終身保険は保険料が高めですが、解約したときに戻るお金（解約返戻金）があります。","who":"佐藤さん（新人）","say":"目的に合わせて選ぶんですね。"},{"i":"chart","h":"所得税は「累進課税」","t":"所得税は、<span class=\"key\">所得が多いほど税率が高くなる</span>しくみです。会社員は毎月の給与から天引きされ、年末に<span class=\"key\">年末調整</span>で1年分の過不足を精算します。","who":"山本さん（資格取得の先輩）","say":"副業の所得が一定額をこえたら、確定申告が必要です。"},{"i":"star","h":"運用益が非課税になる「NISA」","t":"2024年からの新しいNISAでは、<span class=\"key\">つみたて投資枠（年120万円）と成長投資枠（年240万円）</span>があり、生涯で1,800万円まで、運用益に税金がかかりません。","who":"佐藤さん（新人）","say":"ふつうは利益に約20％の税金がかかるんですよね。"},{"i":"alert","h":"リスクとリターン","t":"大きな利益（リターン）が期待できるものほど、値下がりの<span class=\"key\">リスクも大きく</span>なります。いろいろな商品に分けて投資する<span class=\"key\">分散投資</span>で、リスクをおさえます。","who":"山本さん（資格取得の先輩）","say":"「もうかる話」ほど、慎重に考えてくださいね。"},{"i":"star","h":"まとめ","t":"① 定期・終身・養老の3つ　② 定期保険は保険料が安め　③ 所得税は累進課税、会社員は年末調整　④ 新NISAは2つの枠で生涯1,800万円　⑤ 分散投資でリスクをおさえる。","who":"山本さん（資格取得の先輩）","say":"FP3級入門の最後のテストです。"}],"quiz":[{"q":"一生涯の死亡保障がある生命保険は？","c":["定期保険","終身保険","養老保険"],"a":1,"e":"終身保険は一生涯の保障があり、解約返戻金もあります。"},{"q":"所得が多い人ほど税率が高くなるしくみを何という？","c":["累進課税","分離課税","源泉徴収"],"a":0,"e":"所得税は累進課税です。源泉徴収は給与から税金を天引きするしくみのことです。"},{"q":"会社員の1年分の所得税の過不足を、年末に精算する手続きは？","c":["確定申告","住民税の申告","年末調整"],"a":2,"e":"会社員は、会社が年末調整で精算します。"},{"q":"2024年からの新しいNISAで、つみたて投資枠の年間の上限は？","c":["40万円","120万円","240万円"],"a":1,"e":"つみたて投資枠は年120万円、成長投資枠は年240万円です。"},{"q":"リスクをおさえるための投資の考え方として、適切なものは？","c":["1つの商品に集中して投資する","いろいろな商品に分けて投資する","値上がりした商品だけを買い続ける"],"a":1,"e":"分散投資で、値下がりの影響を小さくできます。"}]},{"id":11,"part":"簿記2級","title":"2級の試験と商業簿記の入り口","sub":"試験の概要と配点・貸倒引当金・有価証券・連結会計","mins":7,"slides":[],"quiz":[]},{"id":12,"part":"簿記2級","title":"商業簿記①　固定資産と決算整理","sub":"定額法と定率法・固定資産の売却・決算整理・精算表","mins":7,"slides":[],"quiz":[]},{"id":13,"part":"簿記2級","title":"商業簿記②　2級ならではの取引","sub":"リース取引・外貨建取引・株主資本・剰余金の配当","mins":7,"slides":[],"quiz":[]},{"id":14,"part":"簿記2級","title":"工業簿記の基本","sub":"原価の3要素・直接費と間接費・配賦・原価計算の種類","mins":7,"slides":[],"quiz":[]},{"id":15,"part":"基本情報技術者試験","title":"試験のしくみと基礎理論","sub":"科目Aと科目B・16進数・論理演算・稼働率","mins":7,"slides":[],"quiz":[]},{"id":16,"part":"基本情報技術者試験","title":"ネットワークの基本","sub":"IPアドレス・DNS・TCPとUDP・HTTPS・DHCP","mins":7,"slides":[],"quiz":[]},{"id":17,"part":"基本情報技術者試験","title":"データベースの基本","sub":"関係データベース・主キーと外部キー・SQL・正規化・トランザクション","mins":7,"slides":[],"quiz":[]},{"id":18,"part":"基本情報技術者試験","title":"クラウドとシステム構成","sub":"オンプレミス・IaaS/PaaS/SaaS・仮想化とコンテナ・スケール・責任共有モデル","mins":7,"slides":[],"quiz":[]},{"id":19,"part":"基本情報技術者試験","title":"開発手法とプロジェクト管理","sub":"ウォーターフォール・アジャイル・テスト・クリティカルパス・サービス管理","mins":7,"slides":[],"quiz":[]},{"id":20,"part":"基本情報技術者試験","title":"アルゴリズムと情報セキュリティ","sub":"データ構造・探索・公開鍵暗号・デジタル署名","mins":7,"slides":[],"quiz":[]},{"id":21,"part":"FP2級","title":"ライフプランと社会保険の応用","sub":"6つの係数・傷病手当金・年金の繰下げ受給","mins":7,"slides":[],"quiz":[]},{"id":22,"part":"FP2級","title":"リスク管理（保険）の応用","sub":"保険料のしくみ・ソルベンシー・マージン比率・契約者保護・保険料控除・地震保険","mins":7,"slides":[],"quiz":[]},{"id":23,"part":"FP2級","title":"金融資産運用の応用","sub":"金利と債券価格・PERとPBR・投資信託・預金保険・分散投資","mins":7,"slides":[],"quiz":[]},{"id":24,"part":"FP2級","title":"タックスプランニング","sub":"10種類の所得・給与所得・所得控除と税額控除・確定申告","mins":7,"slides":[],"quiz":[]},{"id":25,"part":"FP2級","title":"不動産と相続の基本","sub":"土地の価格・建ぺい率・法定相続分・相続税の基礎控除","mins":7,"slides":[],"quiz":[]}];
+const PARTS = [{"name":"ITパスポート","lead":"ITを使って働くすべての人のための国家試験。はじめての資格におすすめです。"},{"name":"基本情報技術者試験","paid":true,"plan":"kihon","price":3000,"req":"ITパスポート","lead":"ITパスポートの修了後に解放。IT技術者の入り口となる国家試験です。"},{"name":"簿記3級","lead":"会社のお金の流れが分かるようになる、日商簿記の入門資格。"},{"name":"簿記2級","paid":true,"plan":"boki2","price":3000,"req":"簿記3級","lead":"簿記3級の修了後に解放。商業簿記に加え、工場の会計（工業簿記）を学びます。"},{"name":"FP3級","lead":"保険・税金・年金など、暮らしのお金の知識が身につく国家検定。"},{"name":"FP2級","paid":true,"plan":"fp2","price":3000,"req":"FP3級","lead":"FP3級の修了後に解放。年金・社会保険・不動産・相続をさらに深く学びます。"}];
+const PASS = 4;
+const KEY = 'manabi-skill-shikaku-v1';
+let prog = {};
+try{ prog = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ prog = {}; }
+let pushTimer = null;
+function myCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(prog)); }catch(e){}
+  const code = myCode(); if(!code) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => { post('/progress/save', { code, key: KEY, data: prog }).catch(() => {}); }, 600);
+}
+function mergeInto(remote){
+  for(const [id, v] of Object.entries(remote || {})){
+    const o = prog[id] || (prog[id] = { read:false, passed:false, best:0 });
+    o.read = !!(o.read || v.read); o.passed = !!(o.passed || v.passed); o.best = Math.max(o.best || 0, v.best || 0);
+  }
+}
+function st(id){ return prog[id] || (prog[id] = {read:false, passed:false, best:0}); }
+function unlocked(id){ const c = COURSE[id-1], p = COURSE[id-2]; if(p && p.part === c.part) return st(p.id).passed; const P = PARTS.find(x => x.name === c.part); return reqDone(P) || (hasPlan(P) && skipped(P)); }
+function firstOf(P){ return COURSE.find(c => c.part === P.name); }
+function reqDone(P){ return !P.req || COURSE.filter(x => x.part === P.req).every(x => st(x.id).passed); }
+function skipped(P){ const f = firstOf(P); return !!(f && prog[f.id] && prog[f.id].skip); }
+function isPaid(c){ return !!PARTS.find(x => x.name === c.part).paid; }
+const API = 'https://api.manabiskill.com';
+let PLANS = {}, LOADED = {};
+function hasPlan(x){ const P = x.plan ? x : PARTS.find(y => y.name === x.part); return !!(P.plan && PLANS[P.plan] && new Date(PLANS[P.plan]) > new Date() && LOADED[P.plan]); }
+async function post(path, body){ const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!r.ok) throw new Error(path); return r.json(); }
+async function boot(){
+  let code = null;
+  try{ code = localStorage.getItem('manabi-skill-code'); }catch(e){}
+  if(!code || !PARTS.some(p => p.paid)) return;
+  try{
+    const v = await post('/verify', { code });
+    PLANS = v.plans || {};
+    try{ const pr = await post('/progress/load', { code }); mergeInto((pr.data || {})[KEY]); save(); }catch(e){}
+    for(const P of PARTS.filter(p => p.paid && PLANS[p.plan])){
+      try{
+        const data = await post('/content', { code, plan: P.plan });
+        for(const lv of data.levels){ const t = COURSE.find(c => c.part === P.name && c.title === lv.title); if(t){ t.slides = lv.slides; t.quiz = lv.quiz; } }
+        LOADED[P.plan] = true;
+      }catch(e){}
+    }
+    if(document.querySelector('.levels')) home();
+  }catch(e){}
+}
+function canUse(id){ return unlocked(id) && (!isPaid(COURSE[id-1]) || hasPlan(COURSE[id-1])); }
+function lockMsg(c){ const p = COURSE[c.id-2]; if(p && p.part === c.part) return '前のレベルに合格で解放'; return `${PARTS.find(x => x.name === c.part).req}の修了で解放`; }
+
+const app = document.getElementById('app');
+const crumb = document.getElementById('crumb');
+const L = 'ABCD';
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function home(){
+  crumb.textContent = '資格対策コース';
+  const done = COURSE.filter(c => st(c.id).passed).length;
+  let h = `<h1>資格対策コース</h1>
+  <p class="lead">紙芝居で学び、確認テストで${COURSE[0].quiz.length}問中${PASS}問正解すると次のレベルに進めます。入門の資格はどれからでも始められ、上位の資格は入門の修了後に解放されます。</p>
+  <div class="overall"><span>修了 ${done} / ${COURSE.length}</span><div class="bar"><i style="width:${done/COURSE.length*100}%"></i></div></div>`;
+  PARTS.forEach(p => {
+  const list = COURSE.filter(c => c.part === p.name);
+  const pdone = list.every(c => st(c.id).passed);
+  h += `<section class="part"><h2 class="ptitle">${p.name}<span class="tag ${p.paid ? 'paid' : 'free'}">${p.paid ? '有料' : '無料'}</span></h2><p class="lead" style="margin:4px 0 16px">${p.lead}</p>${p.paid && !hasPlan(p) ? `<div class="plan">この内容は有料プラン（1年 ${p.price.toLocaleString()}円）で受講できます。<a href="pricing.html">料金を見る</a><a href="pricing.html#code">受講コードを入力</a></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && !skipped(p) ? `<div class="choose"><p>購入ありがとうございます。<b>${p.req}</b>を修了してから進むか、${p.req}をとばしてすぐに始めるかを選べます。</p><div class="steps"><button class="btn" data-skip="${p.name}">すぐに始める</button><span class="hint">選ばなければ、${p.req}の修了後に解放されます。${p.req}は、いつでも受講できます。</span></div></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && skipped(p) ? `<div class="choose"><p>${p.req}をとばして受講しています。${p.req}も、いつでも受講できます。</p></div>` : ''}<ol class="levels">`;
+  list.forEach(c => {
+    const s = st(c.id), open = canUse(c.id);
+    const cls = s.passed ? 'done' : open ? 'open' : 'locked';
+    const tag = s.passed ? `<span class="tag done">合格（${s.best}/${c.quiz.length}）</span>` : open ? `<span class="tag open">受講できます</span>` : `<span class="tag ${unlocked(c.id) ? 'paid' : 'locked'}">${unlocked(c.id) ? '有料プランで受講できます' : lockMsg(c)}</span>`;
+    h += `<li class="lv ${cls}"><div class="num">${s.passed ? '✓' : c.id}</div><div class="body">
+      <div class="top"><h2>レベル${c.id}　${c.title}</h2>${tag}</div>
+      <p>${c.sub}・約${c.mins}分</p>
+      <div class="steps">
+        <button class="btn ${s.read ? 'sub' : ''}" data-story="${c.id}" ${open ? '' : 'disabled'}>${s.read ? '紙芝居をもう一度' : '紙芝居で学ぶ'}</button>
+        <button class="btn ${s.read && !s.passed ? '' : 'sub'}" data-quiz="${c.id}" ${open && s.read ? '' : 'disabled'}>確認テスト</button>
+      </div></div></li>`;
+  });
+  h += `</ol>`;
+  if(pdone) h += `<div class="cert"><h2>${p.name} 修了</h2><p>${p.name}の${list.length}レベルすべてに合格しました。おつかれさまでした。</p></div>`;
+  h += `</section>`;
+  });
+  h += `<p class="note">学習の記録は、このブラウザに保存されます。試験の内容や制度は変わることがあるため、受験前には各試験の公式サイトで最新の情報を確認してください。</p>`;
+  app.innerHTML = h;
+  app.querySelectorAll('[data-skip]').forEach(b => b.onclick = () => { const P = PARTS.find(x => x.name === b.dataset.skip); const f = firstOf(P); st(f.id).skip = true; save(); home(); });
+  app.querySelectorAll('[data-story]').forEach(b => b.onclick = () => story(+b.dataset.story, 0));
+  app.querySelectorAll('[data-quiz]').forEach(b => b.onclick = () => quiz(+b.dataset.quiz));
+  window.scrollTo(0,0);
+}
+
+function story(id, n, dir){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1], s = c.slides[n], last = n === c.slides.length-1;
+  crumb.textContent = `レベル${id}　紙芝居`;
+  app.innerHTML = `<h1>${c.title}</h1>
+  <div class="butai"><div class="mado">
+    <div class="card ${dir ? 'in' : ''}" id="card" role="button" tabindex="0" aria-label="次の場面へ">
+      <div class="pg">第${n+1}場面 / 全${c.slides.length}場面</div>
+      <div class="scene">${ICON[s.i]}<div><h3>${s.h}</h3><p class="txt" style="margin-top:10px">${s.t}</p></div></div>
+      <p class="say"><b>${s.who}</b>「${s.say}」</p>
+    </div></div></div>
+  <div class="dots">${c.slides.map((_,k)=>`<i class="${k<=n?'on':''}"></i>`).join('')}</div>
+  <div class="nav">
+    <button class="btn sub" id="prev">${n === 0 ? 'コースに戻る' : '前の場面'}</button>
+    <button class="btn" id="next">${last ? '確認テストへ' : '次の場面'}</button>
+  </div>`;
+  const card = document.getElementById('card');
+  const go = () => {
+    if(last){ st(id).read = true; save(); quiz(id); return; }
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ story(id, n+1, 1); return; }
+    card.classList.add('out');
+    setTimeout(() => story(id, n+1, 1), 300);
+  };
+  document.getElementById('next').onclick = go;
+  card.onclick = go;
+  card.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
+  document.getElementById('prev').onclick = () => n === 0 ? home() : story(id, n-1);
+}
+
+function quiz(id){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1];
+  let i = 0, score = 0; const miss = [];
+  crumb.textContent = `レベル${id}　確認テスト`;
+  function show(){
+    const q = c.quiz[i];
+    app.innerHTML = `<h1>確認テスト</h1><p class="lead">レベル${id}「${c.title}」・${c.quiz.length}問中${PASS}問正解で合格</p>
+    <div class="qbox"><div class="qmeta"><span>第${i+1}問 / ${c.quiz.length}問</span><span>正解 ${score}</span></div>
+    <h2>${q.q}</h2>
+    <div class="choices">${q.c.map((t,k)=>`<button class="choice" data-k="${k}"><span class="l">${L[k]}</span><span>${esc(t)}</span></button>`).join('')}</div>
+    <div id="fb"></div></div>`;
+    app.querySelectorAll('.choice').forEach(b => b.onclick = () => answer(+b.dataset.k));
+    window.scrollTo(0,0);
+  }
+  function answer(k){
+    const q = c.quiz[i], ok = k === q.a;
+    if(ok) score++; else miss.push(i);
+    app.querySelectorAll('.choice').forEach(b => {
+      b.disabled = true;
+      const kk = +b.dataset.k;
+      if(kk === q.a) b.classList.add('right');
+      else if(kk === k) b.classList.add('wrong');
+    });
+    const last = i === c.quiz.length-1;
+    document.getElementById('fb').innerHTML = `<div class="fb ${ok?'ok':'ng'}"><strong>${ok?'正解':'不正解'}</strong>${q.e}</div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="nx">${last?'結果を見る':'次の問題'}</button></div>`;
+    const nx = document.getElementById('nx'); nx.focus();
+    nx.onclick = () => { if(last) result(); else { i++; show(); } };
+  }
+  function result(){
+    const s = st(id), pass = score >= PASS;
+    if(pass) s.passed = true;
+    s.best = Math.max(s.best, score); save();
+    const next = COURSE[id];
+    const pdone = COURSE.filter(x => x.part === c.part).every(x => st(x.id).passed);
+    const opened = pass && pdone ? PARTS.filter(P => P.req === c.part) : [];
+    const goLv = !pass ? null : (next && next.part === c.part) ? next : (opened.length ? COURSE.find(x => x.part === opened[0].name) : null);
+    const goPaid = goLv && isPaid(goLv) && !hasPlan(goLv);
+    const msg = !pass ? `${PASS}問以上の正解で合格です。紙芝居を見直してから、もう一度挑戦してみましょう。`
+      : (next && next.part === c.part) ? `レベル${next.id}「${next.title}」が解放されました。`
+      : `${c.part}を修了しました。` + (opened.length ? `${opened.map(o => o.name).join('・')}が解放されました。` : '');
+    app.innerHTML = `<h1>テスト結果</h1>
+    <div class="result">
+      <div class="score">${score}<small> / ${c.quiz.length}問</small></div>
+      <h2 style="color:var(${pass?'--ok':'--ng'});margin-top:6px">${pass ? '合格です' : 'もう少しです'}</h2>
+      <p class="lead" style="margin-inline:auto">${msg}${goPaid ? 'この先は有料プランで受講できます。' : ''}</p>
+      ${miss.length ? `<div class="review">${miss.map(m=>`<div><span class="x">第${m+1}問</span>　${c.quiz[m].q}<br>正解：${esc(c.quiz[m].c[c.quiz[m].a])}</div>`).join('')}</div>` : ''}
+      <div class="row">
+        ${goLv && !goPaid ? `<button class="btn" id="go">レベル${goLv.id}の紙芝居へ</button>` : ''}
+        ${!pass ? `<button class="btn" id="retry">もう一度テスト</button><button class="btn sub" id="reread">紙芝居を見直す</button>` : ''}
+        <button class="btn sub" id="back">コースに戻る</button>
+      </div></div>`;
+    const g = id => document.getElementById(id);
+    if(g('go')) g('go').onclick = () => story(goLv.id, 0);
+    if(g('retry')) g('retry').onclick = () => quiz(id);
+    if(g('reread')) g('reread').onclick = () => story(id, 0);
+    g('back').onclick = home;
+    window.scrollTo(0,0);
+  }
+  show();
+}
+home();
+boot();
+</script>
+
+</html>

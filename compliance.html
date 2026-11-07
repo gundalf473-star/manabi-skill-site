@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}a.brand{text-decoration:none}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>コンプライアンスコース</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 紙芝居の木の舞台（butai）を中心に、コース地図 → 紙芝居 → 確認テスト → 結果 の4画面を切り替える */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1c2632; --muted:#5a6776; --line:#d3dae2;
+  --ai:#2a4a8a; --ai-soft:#e2e9f6; --ok:#2c7a4c; --ok-soft:#e1f1e7; --ng:#b03a3a; --ng-soft:#f7e3e3;
+  --wood:#8b5a33; --wood-dark:#5d3a1f; --paper:#fbf8f0; --card-ink:#2a241c; --card-muted:#6b5f50;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.site{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:24px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ai);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+.brand svg{width:26px;height:26px;flex:none}
+.crumb{font-size:13px;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:clamp(24px,5vw,32px)}
+h2{font-size:20px}
+.lead{color:var(--muted);margin:8px 0 0;max-width:36em}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;background:var(--ai);color:var(--surface);min-height:46px}
+.btn.sub{background:transparent;color:var(--ai);border:1.5px solid var(--ai)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* コース地図 */
+.overall{margin:20px 0 28px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.levels{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.lv{display:grid;grid-template-columns:44px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.lv:not(:last-child)::before{content:"";position:absolute;left:21px;top:46px;bottom:0;width:2px;background:var(--line)}
+.lv .num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:18px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+.lv.open .num{border-color:var(--ai);color:var(--ai)}
+.lv.done .num{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.lv .body{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.lv.locked .body{opacity:.55}
+.lv .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;letter-spacing:.05em;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.tag.locked{background:var(--line);color:var(--muted)}
+.tag.open{background:var(--ai-soft);color:var(--ai)}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+.lv p{margin:6px 0 12px;color:var(--muted);font-size:14px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.steps .btn{padding:9px 14px;min-height:40px;font-size:14px}
+.part{margin-top:32px}
+.tag.free{background:var(--ok-soft);color:var(--ok)}
+.tag.paid{background:var(--paper);color:var(--wood-dark);border:1px solid var(--wood)}
+.ptitle .tag{font-size:12px;font-family:var(--f-body)}
+.choose{background:var(--ai-soft);border-radius:12px;padding:14px 16px;margin:-6px 0 18px;font-size:14px}
+.choose p{margin:0 0 10px}
+.choose p:last-child{margin:0}
+.choose .hint{font-size:13px;color:var(--muted);align-self:center}
+.plan a{color:var(--ai);font-weight:700;margin-left:6px}
+.plan{border:1px dashed var(--wood);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);margin:-6px 0 18px}
+.ptitle{font-size:22px;display:flex;align-items:center;gap:12px}
+.ptitle::after{content:"";flex:1;height:1px;background:var(--line)}
+.cert{margin-top:4px;margin-bottom:8px;border:2px solid var(--ok);border-radius:12px;padding:20px;text-align:center;background:var(--ok-soft)}
+.cert h2{color:var(--ok)}
+
+/* 紙芝居の舞台 */
+.butai{background:linear-gradient(180deg,var(--wood),var(--wood-dark));border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(40,25,10,.25);margin:18px 0 14px}
+.butai .mado{background:var(--wood-dark);border-radius:6px;padding:6px;overflow:hidden;position:relative}
+.card{background:var(--paper);color:var(--card-ink);border-radius:4px;min-height:360px;padding:22px 22px 18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;cursor:pointer;user-select:none}
+.card .pg{font-size:12px;color:var(--card-muted);letter-spacing:.08em}
+.card .scene{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:center}
+.card svg{width:96px;height:96px;color:var(--card-ink)}
+.card h3{font-size:clamp(20px,4.6vw,26px)}
+.card .txt{font-family:var(--f-display);font-size:17px;line-height:1.9;margin:0}
+.card .say{font-family:var(--f-display);font-size:15px;border-left:3px solid var(--wood);padding:4px 0 4px 12px;margin:0;color:var(--card-ink)}
+.card .say b{font-size:12px;color:var(--card-muted);display:block;font-weight:500}
+.card .key{background:#fff3c4;color:var(--card-ink);padding:0 4px;border-radius:3px;font-weight:700}
+.card.out{animation:pull .32s ease-in forwards}
+.card.in{animation:slidein .3s ease-out}
+@keyframes pull{to{transform:translateX(-105%)}}
+@keyframes slidein{from{transform:translateX(30%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.card.out,.card.in{animation:none}}
+@media (max-width:520px){.card .scene{grid-template-columns:1fr}.card svg{width:72px;height:72px}.card{min-height:420px}}
+.dots{display:flex;gap:6px;justify-content:center;margin:4px 0 14px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ai)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+
+/* 確認テスト */
+.qbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+.qmeta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.qbox h2{font-size:19px;margin:10px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.6;display:grid;grid-template-columns:28px 1fr;gap:8px}
+.choice span.l{font-weight:700;color:var(--muted)}
+.choice:hover:not(:disabled){border-color:var(--ai)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.fb{margin-top:16px;padding:14px;border-radius:10px;font-size:15px}
+.fb.ok{background:var(--ok-soft)} .fb.ng{background:var(--ng-soft)}
+.fb strong{display:block;margin-bottom:4px}
+.fb.ok strong{color:var(--ok)} .fb.ng strong{color:var(--ng)}
+
+/* 結果 */
+.score{font-family:var(--f-display);font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.score small{font-size:20px;color:var(--muted)}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:18px;text-align:center}
+.result .row{justify-content:center;margin-top:18px}
+.review{text-align:left;margin-top:18px;font-size:14px;display:grid;gap:8px}
+.review div{padding:10px 12px;border-radius:8px;background:var(--bg)}
+.review .x{color:var(--ng);font-weight:700}
+.note{font-size:13px;color:var(--muted);margin-top:28px}
+</style>
+
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="6" width="56" height="42" rx="6" fill="#8b5a33"/><rect x="10" y="12" width="44" height="30" rx="2" fill="#fbf8f0"/><rect x="17" y="31" width="7" height="6" rx="1" fill="#2a4a8a"/><rect x="28.5" y="25" width="7" height="12" rx="1" fill="#2a4a8a"/><rect x="40" y="19" width="7" height="18" rx="1" fill="#2a4a8a"/><rect x="12" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/><rect x="45" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/></svg>まなびスキル研修室</a>
+    <div class="crumb" id="crumb">コンプライアンスコース</div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const ICON = {
+  person:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="32" r="16"/><path d="M18 84c4-18 16-26 30-26s26 8 30 26"/></svg>',
+  lock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="20" y="42" width="56" height="42" rx="6"/><path d="M32 42V30a16 16 0 0 1 32 0v12"/><circle cx="48" cy="61" r="5"/><path d="M48 66v8"/></svg>',
+  key:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="30" cy="48" r="16"/><path d="M46 48h38M72 48v12M82 48v8"/></svg>',
+  phone:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="28" y="10" width="40" height="76" rx="7"/><path d="M42 76h12"/><path d="M38 40h20M38 50h20" stroke-dasharray="4 4"/></svg>',
+  pc:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="12" y="16" width="72" height="48" rx="4"/><path d="M34 82h28M48 64v18"/></svg>',
+  mail:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="10" y="22" width="76" height="52" rx="5"/><path d="M10 26l38 28 38-28"/></svg>',
+  link:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M42 54a14 14 0 0 0 20 0l12-12a14 14 0 0 0-20-20l-5 5"/><path d="M54 42a14 14 0 0 0-20 0L22 54a14 14 0 0 0 20 20l5-5"/></svg>',
+  alert:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 12L88 82H8z"/><path d="M48 38v20M48 68v2"/></svg>',
+  clip:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M64 34L38 60a8 8 0 0 0 12 12l30-30a16 16 0 0 0-22-22L26 52a24 24 0 0 0 34 34l20-20"/></svg>',
+  wifi:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M10 38a54 54 0 0 1 76 0M22 52a36 36 0 0 1 52 0M34 66a18 18 0 0 1 28 0"/><circle cx="48" cy="78" r="3"/></svg>',
+  eye:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M8 48s14-26 40-26 40 26 40 26-14 26-40 26S8 48 8 48z"/><circle cx="48" cy="48" r="11"/></svg>',
+  camera:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 30h18l6-10h24l6 10h18v48H12z"/><circle cx="48" cy="53" r="14"/></svg>',
+  usb:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="30" y="34" width="36" height="52" rx="5"/><path d="M36 34V12h24v22"/><path d="M42 20h4M50 20h4"/></svg>',
+  ai:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M14 20h68v44H42L26 78V64H14z"/><path d="M30 38h36M30 48h22" stroke-linecap="round"/></svg>',
+  money:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="44" rx="5"/><circle cx="48" cy="48" r="11"/><path d="M20 36v24M76 36v24"/></svg>',
+  shield:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 10l32 12v24c0 20-14 34-32 40-18-6-32-20-32-40V22z"/><path d="M34 48l10 10 18-20"/></svg>',
+  plug:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M14 48h22M60 48h22"/><rect x="36" y="34" width="24" height="28" rx="4"/><path d="M42 18l-6 10M58 78l6-10"/></svg>',
+  qr:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><rect x="14" y="14" width="26" height="26"/><rect x="56" y="14" width="26" height="26"/><rect x="14" y="56" width="26" height="26"/><path d="M56 56h10v10H56zM72 72h10v10H72zM72 56h10M56 76h6" stroke-linecap="round"/></svg>',
+  chat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M10 18h50v32H30L18 60V50h-8z"/><path d="M68 34h18v32h-8v10L66 66H40V58"/></svg>',
+  cloud:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M28 72a18 18 0 0 1-2-36 24 24 0 0 1 46 6 15 15 0 0 1-2 30z"/><path d="M48 62V44M40 52l8-8 8 8" stroke-linecap="round"/></svg>',
+  paper:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M24 10h34l16 16v34H24z"/><path d="M58 10v16h16"/><path d="M18 66h60v10H18zM28 76v12M40 76v12M52 76v12M64 76v12"/></svg>',
+  update:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M78 48a30 30 0 1 1-9-21"/><path d="M72 14v14H58"/><path d="M48 34v16l10 6"/></svg>',
+  voice:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="36" y="12" width="24" height="44" rx="12"/><path d="M24 46a24 24 0 0 0 48 0M48 70v14M36 84h24"/><path d="M80 30l8-4M82 46h8M80 62l8 4"/></svg>',
+  shirt:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M34 12l14 10 14-10 22 12-8 18-10-4v46H30V38l-10 4-8-18z"/><path d="M48 22v30"/></svg>',
+  speech:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 18h72v46H44L26 80V64H12z"/><circle cx="32" cy="41" r="2.5" fill="currentColor"/><circle cx="48" cy="41" r="2.5" fill="currentColor"/><circle cx="64" cy="41" r="2.5" fill="currentColor"/></svg>',
+  bow:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="62" cy="26" r="10"/><path d="M54 36L34 52v34M34 52l-2 34M48 44l8 16"/><path d="M16 86h64" stroke-dasharray="4 5"/></svg>',
+  clock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="50" r="34"/><path d="M48 30v20l14 9M40 10h16"/></svg>',
+  star:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 12l11 23 25 3-18 17 5 25-23-12-23 12 5-25-18-17 25-3z"/></svg>',
+  up:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="62" r="10"/><path d="M14 88c2-10 8-14 16-14s14 4 16 14"/><path d="M66 70V20M52 34l14-14 14 14"/></svg>',
+  down:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="42" r="10"/><path d="M14 68c2-10 8-14 16-14s14 4 16 14"/><path d="M66 20v50M52 56l14 14 14-14"/></svg>',
+  building:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M18 86V14h40v72M58 36h20v50M10 86h76"/><path d="M28 26h6M42 26h6M28 40h6M42 40h6M28 54h6M42 54h6M34 86V70h10v16" stroke-linecap="round"/></svg>',
+  note:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="18" y="12" width="52" height="72" rx="4"/><path d="M30 30h28M30 42h28M30 54h16"/><path d="M78 30L56 70l-6 6 2-8 22-40z"/></svg>',
+  card:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="46" rx="4"/><path d="M22 40h30M22 52h20M22 62h26"/><circle cx="70" cy="46" r="7"/></svg>',
+  seat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="30" y="34" width="36" height="28" rx="3"/><rect x="36" y="14" width="24" height="12" rx="3"/><rect x="36" y="70" width="24" height="12" rx="3"/><path d="M80 30v40h8V30z"/><path d="M10 48h12" stroke-dasharray="3 4"/></svg>',
+  scale:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12v72M30 84h36M18 24h60"/><path d="M18 24L8 52h20zM78 24L68 52h20z"/></svg>',
+  chart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v72h72"/><path d="M22 66l18-20 14 12 24-30"/><path d="M64 28h14v14"/></svg>',
+  gift:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="14" y="38" width="68" height="16"/><rect x="20" y="54" width="56" height="30"/><path d="M48 38v46M48 38c-6-14-24-16-22-4M48 38c6-14 24-16 22-4"/></svg>',
+  heart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 82S12 60 12 36a18 18 0 0 1 36-6 18 18 0 0 1 36 6c0 24-36 46-36 46z"/></svg>',
+  report:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="12" width="56" height="74" rx="5"/><path d="M32 30h32M32 42h32M32 54h20"/><path d="M58 68l6 6 10-12"/></svg>'
+};
+const NAKA = '中村さん（法務部）';
+const SATO = '佐藤さん（新人）';
+const COURSE = [{"id":1,"title":"コンプライアンスとは","sub":"意味・小さな不正・迷ったときの考え方・相談窓口","mins":6,"slides":[{"i":"scale","h":"「法令遵守」だけではない","t":"コンプライアンスは、法律を守ることに加えて、<span class=\"key\">会社のルールや社会の常識</span>を守ることも含みます。お客さまや社会からの信頼を守るための考え方です。","who":"中村さん（法務部）","say":"今日はコンプライアンスの基本をお話しします。"},{"i":"building","h":"ひとりの行動が会社全体に","t":"社員ひとりの不正やSNSでの発言が、ニュースになって会社の信用を大きく失うことがあります。<span class=\"key\">信用を取り戻すには長い時間</span>がかかります。","who":"佐藤さん（新人）","say":"自分は関係ない、とは言えないんですね。"},{"i":"money","h":"小さな不正も不正","t":"交通費を少し多めに申請する、勤務時間をつけまちがえたままにする。<span class=\"key\">金額や回数に関係なく</span>不正です。「みんなやっている」は理由になりません。","who":"中村さん（法務部）","say":"小さなことから、大きな不正は始まります。"},{"i":"speech","h":"迷ったときの3つの質問","t":"判断に迷ったら、<span class=\"key\">① ルールや法律に合っているか　② 家族に胸をはって話せるか　③ ニュースになっても大丈夫か</span>を考えます。ひとつでも不安なら、相談しましょう。","who":"佐藤さん（新人）","say":"「ばれなければいい」ではなく、ですね。"},{"i":"report","h":"相談窓口と内部通報","t":"おかしいと思ったら、上司や会社の<span class=\"key\">相談窓口（内部通報窓口）</span>に相談できます。通報したことを理由に解雇など不利益な扱いをすることは、法律（公益通報者保護法）で禁止されています。","who":"中村さん（法務部）","say":"声をあげた人を守る仕組みがあります。"},{"i":"star","h":"まとめ","t":"① 法律＋社内ルール＋社会の常識　② ひとりの行動が会社の信用に　③ 小さな不正もしない　④ 迷ったら3つの質問　⑤ おかしいと思ったら相談。","who":"中村さん（法務部）","say":"では、確認テストに挑戦しましょう。"}],"quiz":[{"q":"コンプライアンスの意味として、いちばん近いものは？","c":["法律だけを守ること","法律に加え、会社のルールや社会の常識も守ること","上司の指示にすべて従うこと"],"a":1,"e":"法律に違反していなくても、社会の常識から外れた行動は信用を失います。"},{"q":"同僚が「交通費は少し多めに申請するものだよ」と言っています。","c":["少額なら問題ない","みんなやっているなら問題ない","金額に関係なく不正なので、正しく申請する"],"a":2,"e":"少額でも不正は不正です。「みんなやっている」は理由になりません。"},{"q":"判断に迷ったときの考え方として、よいものは？","c":["家族に話せるか、ニュースになっても大丈夫かを考え、不安なら相談する","ばれなければよいと考える","前の人がやっていた方法をそのまま続ける"],"a":0,"e":"3つの質問で考え、ひとつでも不安があれば相談しましょう。"},{"q":"職場で不正らしきことに気づきました。","c":["見なかったことにする","SNSで公表する","上司や会社の相談窓口に相談する"],"a":2,"e":"まずは社内の相談窓口へ。SNSで広めると、関係のない人を傷つけたり、自分が問題になったりすることがあります。"},{"q":"内部通報をした人について、正しいものはどれ？","c":["通報したことを理由に解雇などの不利益な扱いをすることは、法律で禁止されている","通報した人は評価が下がる","通報できるのは役員だけ"],"a":0,"e":"公益通報者保護法で、通報した人は守られています。"}],"part":"入門編"},{"id":2,"title":"ハラスメントを防ぐ","sub":"パワハラ・セクハラ・妊娠や育休をめぐるハラスメント","mins":7,"slides":[{"i":"alert","h":"パワーハラスメントとは","t":"職場での立場の強さを背景に、<span class=\"key\">仕事に必要な範囲をこえた言動</span>で、相手の働く環境をこわすことです。上司から部下だけでなく、同僚や部下から起きることもあります。","who":"中村さん（法務部）","say":"会社にはパワハラを防ぐ対策が法律で義務づけられています。"},{"i":"speech","h":"指導とパワハラのちがい","t":"ミスの原因と直し方を具体的に伝えるのは<span class=\"key\">指導</span>です。大勢の前で長時間どなる、人格を否定する、無視する、できない量の仕事を押しつけるのはパワハラにあたることがあります。","who":"佐藤さん（新人）","say":"「何を直せばいいか」が伝わるのが指導なんですね。"},{"i":"person","h":"セクシュアルハラスメント","t":"性的な冗談、体へのふれあい、交際のしつこい誘いなど。<span class=\"key\">受け手がどう感じるか</span>が大切で、「冗談のつもり」は通りません。同性どうし、取引先との間でも起こります。","who":"中村さん（法務部）","say":"相手が笑っていても、いやだと思っていることがあります。"},{"i":"heart","h":"妊娠・育休・介護をめぐって","t":"妊娠・出産、育児休業や介護休業を取る人に「迷惑だ」と言ったり、不利な扱いをしたりするのも<span class=\"key\">ハラスメント</span>です。制度を使うのは働く人の権利です。","who":"佐藤さん（新人）","say":"いつか自分が使うかもしれない制度ですもんね。"},{"i":"report","h":"受けたら・見かけたら","t":"ハラスメントを受けたら、<span class=\"key\">日時・場所・言われたこと</span>をメモし、相談窓口に相談します。見かけたときは、本人に声をかけて窓口を伝えましょう。相談したことで不利な扱いをすることも禁止されています。","who":"中村さん（法務部）","say":"ひとりでかかえこまないでくださいね。"},{"i":"star","h":"まとめ","t":"① 必要な範囲をこえた言動はパワハラ　② 具体的な指導はOK　③ セクハラは受け手の感じ方が大切　④ 制度を使う人を責めない　⑤ 記録して相談。","who":"中村さん（法務部）","say":"では、確認テストです。"}],"quiz":[{"q":"パワハラにあたる可能性が高いのはどれ？","c":["ミスの原因と、改善のしかたを具体的に伝える","大勢の前で長時間どなり、人格を否定する","業務に必要な仕事を割りふる"],"a":1,"e":"人格の否定や、必要な範囲をこえた叱責はパワハラにあたることがあります。"},{"q":"セクハラかどうかを考えるうえで、大切なことは？","c":["受け手がどう感じるか","言った側が冗談のつもりだったか","同性どうしかどうか"],"a":0,"e":"言った側の意図ではなく、受け手の感じ方が大切です。同性どうしでも起こります。"},{"q":"育児休業を取る同僚に「みんなに迷惑だよね」と言いました。","c":["本音なので問題ない","冗談なら問題ない","ハラスメントにあたる"],"a":2,"e":"制度を使う人への嫌がらせや不利な扱いは、ハラスメントです。"},{"q":"同僚がハラスメントを受けているところを見かけました。","c":["関わらないようにする","本人に声をかけ、相談窓口を伝える","ほかの同僚にうわさとして話す"],"a":1,"e":"声をかけるだけでも支えになります。うわさにすると、本人がさらに傷つきます。"},{"q":"上司からの指導について、正しいものはどれ？","c":["きびしく注意されたら、すべてパワハラ","上司の言動なら、何でも許される","業務に必要で、適切な範囲の指導はパワハラにあたらない"],"a":2,"e":"適切な指導は必要なことです。範囲をこえるかどうかがポイントです。"}],"part":"入門編"},{"id":3,"title":"情報と権利を守る","sub":"著作権・個人情報・インサイダー取引・SNS","mins":7,"slides":[{"i":"camera","h":"ネットの画像は自由に使えない","t":"インターネットで見つけた画像やイラストにも<span class=\"key\">著作権</span>があります。社内資料やSNSに使うときは、利用条件を確認し、許可されたものだけを使います。","who":"中村さん（法務部）","say":"「検索で出てきたから使える」ではありません。"},{"i":"paper","h":"他の人の文章を使うとき","t":"他の人の文章を使うには、<span class=\"key\">引用のルール</span>を守ります。必要な範囲だけにして、自分の文章と区別し、出典を書きます。少し言葉を変えただけで自分の文章にするのはいけません。","who":"佐藤さん（新人）","say":"企画書を書くとき、気をつけます。"},{"i":"card","h":"個人情報は預かりもの","t":"お客さまの名前や連絡先は、会社が<span class=\"key\">預かっている大切な情報</span>です。決められた目的以外に使ったり、本人の同意なく他の会社に渡したりしてはいけません（個人情報保護法）。","who":"中村さん（法務部）","say":"名刺の情報も、個人情報ですよ。"},{"i":"chart","h":"インサイダー取引","t":"会社の合併や業績など、<span class=\"key\">まだ公表されていない重要な情報</span>を知って株を売り買いするのは、法律で禁止されています。家族や友人に教えて売り買いさせるのも違反です。","who":"佐藤さん（新人）","say":"「家族に教えるだけ」もだめなんですね。"},{"i":"phone","h":"SNSでの発言","t":"仕事の話をSNSに書くときは、<span class=\"key\">公開されていない会社の情報やお客さまのこと</span>は書きません。社名を出さなくても、内容から特定されることがあります。","who":"中村さん（法務部）","say":"鍵アカウントでも、スクリーンショットで広まります。"},{"i":"star","h":"まとめ","t":"① 画像は利用条件を確認　② 文章は引用のルールを守る　③ 個人情報は目的の範囲で　④ 未公表の重要情報で株を売買しない　⑤ SNSに社内の情報を書かない。","who":"中村さん（法務部）","say":"では、確認テストです。"}],"quiz":[{"q":"ネットで見つけた画像を、社外向けの資料に使いたい。","c":["検索で出てきた画像は自由に使える","利用条件を確認し、許可されたものだけを使う","出典を書けば、どんな画像でも使える"],"a":1,"e":"画像にも著作権があります。利用条件を確認しましょう。"},{"q":"他社の資料の文章を、自分の企画書に一部使いたい。","c":["言葉を少し変えれば、自分の文章として使える","必要な範囲にしぼり、自分の文章と区別して出典を書く","社内向けなら、何をしてもよい"],"a":1,"e":"引用のルールを守れば、他の人の文章を使うことができます。"},{"q":"お客さまの連絡先リストを、本人の同意なく取引先の会社に渡すのは？","c":["原則として許されない","取引先なら問題ない","人数が少なければ問題ない"],"a":0,"e":"個人情報は決められた目的の範囲で使います。第三者に渡すには、原則として本人の同意が必要です。"},{"q":"仕事で、自社のまだ発表されていない合併の情報を知りました。","c":["公表される前に、自社の株を買う","家族に教えるだけならよい","公表されるまで株を売り買いせず、だれにも教えない"],"a":2,"e":"インサイダー取引は、本人だけでなく、情報を教えて売り買いさせることも違反です。"},{"q":"SNSに仕事のことを書くとき、正しいのはどれ？","c":["鍵アカウントなら何を書いてもよい","会社やお客さまの、公開されていない情報は書かない","社名を出さなければ何を書いてもよい"],"a":1,"e":"社名を出さなくても特定されることがあります。公開されていない情報は書かないようにします。"}],"part":"入門編"},{"id":4,"title":"公正なお金と取引","sub":"経費・贈答・取引先との関係・利益相反・データ改ざん","mins":7,"slides":[{"i":"money","h":"経費は会社のお金","t":"経費は、仕事のために使ったお金だけを申請します。<span class=\"key\">私的な飲食や買い物</span>を経費にするのは不正です。領収書の日付や金額を書きかえるのも許されません。","who":"中村さん（法務部）","say":"「仕事の話も少ししたから」は通りません。"},{"i":"gift","h":"贈り物と接待","t":"取引先との贈り物や接待は、会社のルールで決められた範囲で行います。特に<span class=\"key\">公務員への贈り物や接待</span>は、法律違反（贈賄）になるおそれがあります。","who":"佐藤さん（新人）","say":"お礼のつもりでも、だめなことがあるんですね。"},{"i":"building","h":"立場の弱い取引先を守る","t":"発注したあとに一方的に代金を下げる、支払いを遅らせるなど、<span class=\"key\">立場の強さを利用した押しつけ</span>は、法律で禁止されていることがあります。取引先は対等なパートナーです。","who":"中村さん（法務部）","say":"小さな会社やフリーランスとの取引では、特に注意が必要です。"},{"i":"scale","h":"会社と自分の利益がぶつかるとき","t":"家族や友人の会社に仕事を発注するなど、会社の利益と自分の利益がぶつかる状態を<span class=\"key\">利益相反</span>といいます。こうしたときは、事前に上司や会社に申告します。","who":"佐藤さん（新人）","say":"隠さずに先に伝えることが大事なんですね。"},{"i":"alert","h":"「上司の指示でも」しない","t":"検査データの書きかえや、数字をよく見せるごまかしは、会社の信用を大きくこわします。<span class=\"key\">上司の指示でも従わず</span>、相談窓口に相談しましょう。","who":"中村さん（法務部）","say":"これでコンプライアンス入門編はおしまい。最後のテストです。"},{"i":"star","h":"まとめ","t":"① 経費は仕事の分だけ　② 贈り物・接待はルールの範囲で、公務員には特に注意　③ 取引先に押しつけない　④ 利益相反は事前に申告　⑤ 不正な指示には従わず相談。","who":"中村さん（法務部）","say":"迷ったら、いつでも相談してくださいね。"}],"quiz":[{"q":"友人との食事代。仕事の話も少しした。経費で申請してよい？","c":["仕事の話をしたので申請できる","私的な食事なので申請しない","少額なら申請してよい"],"a":1,"e":"私的な支出を経費にするのは不正です。"},{"q":"お世話になった公務員に、高価な贈り物をしたい。","c":["お礼なら問題ない","年末のあいさつなら問題ない","法律違反（贈賄）になるおそれがあるので、しない"],"a":2,"e":"公務員への贈り物や接待は、きびしく制限されています。"},{"q":"予算が足りなくなったので、発注後に取引先の代金を一方的に下げたい。","c":["法律で禁止されていることがあるので、しない","予算がないなら仕方がない","口頭で伝えれば問題ない"],"a":0,"e":"立場の強さを利用した押しつけは、取引先を苦しめ、法律違反になることがあります。"},{"q":"兄が経営する会社に、仕事を発注しようと考えています。","c":["安ければ、だまって発注してよい","利益相反のおそれがあるので、事前に上司や会社に申告する","家族の会社なので、手続きを省いてよい"],"a":1,"e":"利益相反は、隠さず先に申告することが大切です。会社のルールに沿って判断します。"},{"q":"上司から「検査データを基準内に書きかえて」と指示されました。","c":["上司の指示なので従う","一度だけなら従う","従わず、相談窓口などに相談する"],"a":2,"e":"データの改ざんは、指示があっても許されません。相談窓口を使いましょう。"}],"part":"入門編"},{"id":5,"part":"中級編","title":"働き方のルールとチームの守り方","sub":"労働時間・有給休暇・相談を受けたとき","mins":7,"slides":[],"quiz":[]},{"id":6,"part":"中級編","title":"企業不祥事を防ぐ","sub":"カルテル・反社会的勢力・粉飾・SNS炎上・危機対応","mins":7,"slides":[],"quiz":[]}];
+const PARTS = [{"name":"入門編","lead":"働く人として知っておきたい、ルールと信頼を守るための基本。"},{"name":"中級編","paid":true,"plan":"compliance","price":1000,"req":"入門編","lead":"入門編の修了後に解放。チームで働くときのルールと、不祥事を防ぐ知識。"}];
+const PASS = 4;
+const KEY = 'manabi-skill-compliance-v1';
+let prog = {};
+try{ prog = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ prog = {}; }
+let pushTimer = null;
+function myCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(prog)); }catch(e){}
+  const code = myCode(); if(!code) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => { post('/progress/save', { code, key: KEY, data: prog }).catch(() => {}); }, 600);
+}
+function mergeInto(remote){
+  for(const [id, v] of Object.entries(remote || {})){
+    const o = prog[id] || (prog[id] = { read:false, passed:false, best:0 });
+    o.read = !!(o.read || v.read); o.passed = !!(o.passed || v.passed); o.best = Math.max(o.best || 0, v.best || 0);
+  }
+}
+function st(id){ return prog[id] || (prog[id] = {read:false, passed:false, best:0}); }
+function unlocked(id){ const c = COURSE[id-1], p = COURSE[id-2]; if(p && p.part === c.part) return st(p.id).passed; const P = PARTS.find(x => x.name === c.part); return reqDone(P) || (hasPlan(P) && skipped(P)); }
+function firstOf(P){ return COURSE.find(c => c.part === P.name); }
+function reqDone(P){ return !P.req || COURSE.filter(x => x.part === P.req).every(x => st(x.id).passed); }
+function skipped(P){ const f = firstOf(P); return !!(f && prog[f.id] && prog[f.id].skip); }
+function isPaid(c){ return !!PARTS.find(x => x.name === c.part).paid; }
+const API = 'https://api.manabiskill.com';
+let PLANS = {}, LOADED = {};
+function hasPlan(x){ const P = x.plan ? x : PARTS.find(y => y.name === x.part); return !!(P.plan && PLANS[P.plan] && new Date(PLANS[P.plan]) > new Date() && LOADED[P.plan]); }
+async function post(path, body){ const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!r.ok) throw new Error(path); return r.json(); }
+async function boot(){
+  let code = null;
+  try{ code = localStorage.getItem('manabi-skill-code'); }catch(e){}
+  if(!code || !PARTS.some(p => p.paid)) return;
+  try{
+    const v = await post('/verify', { code });
+    PLANS = v.plans || {};
+    try{ const pr = await post('/progress/load', { code }); mergeInto((pr.data || {})[KEY]); save(); }catch(e){}
+    for(const P of PARTS.filter(p => p.paid && PLANS[p.plan])){
+      try{
+        const data = await post('/content', { code, plan: P.plan });
+        for(const lv of data.levels){ const t = COURSE.find(c => c.part === P.name && c.title === lv.title); if(t){ t.slides = lv.slides; t.quiz = lv.quiz; } }
+        LOADED[P.plan] = true;
+      }catch(e){}
+    }
+    if(document.querySelector('.levels')) home();
+  }catch(e){}
+}
+function canUse(id){ return unlocked(id) && (!isPaid(COURSE[id-1]) || hasPlan(COURSE[id-1])); }
+function lockMsg(c){ const p = COURSE[c.id-2]; if(p && p.part === c.part) return '前のレベルに合格で解放'; return `${PARTS.find(x => x.name === c.part).req}の修了で解放`; }
+
+const app = document.getElementById('app');
+const crumb = document.getElementById('crumb');
+const L = 'ABCD';
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function home(){
+  crumb.textContent = 'コンプライアンスコース';
+  const done = COURSE.filter(c => st(c.id).passed).length;
+  let h = `<h1>コンプライアンスコース</h1>
+  <p class="lead">紙芝居で学び、確認テストで${COURSE[0].quiz.length}問中${PASS}問正解すると次のレベルに進めます。全${COURSE.length}レベルです。</p>
+  <div class="overall"><span>修了 ${done} / ${COURSE.length}</span><div class="bar"><i style="width:${done/COURSE.length*100}%"></i></div></div>`;
+  PARTS.forEach(p => {
+  const list = COURSE.filter(c => c.part === p.name);
+  const pdone = list.every(c => st(c.id).passed);
+  h += `<section class="part"><h2 class="ptitle">${p.name}<span class="tag ${p.paid ? 'paid' : 'free'}">${p.paid ? '有料' : '無料'}</span></h2><p class="lead" style="margin:4px 0 16px">${p.lead}</p>${p.paid && !hasPlan(p) ? `<div class="plan">この内容は有料プラン（1年 ${p.price.toLocaleString()}円）で受講できます。<a href="pricing.html">料金を見る</a><a href="pricing.html#code">受講コードを入力</a></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && !skipped(p) ? `<div class="choose"><p>購入ありがとうございます。<b>${p.req}</b>を修了してから進むか、${p.req}をとばしてすぐに始めるかを選べます。</p><div class="steps"><button class="btn" data-skip="${p.name}">すぐに始める</button><span class="hint">選ばなければ、${p.req}の修了後に解放されます。${p.req}は、いつでも受講できます。</span></div></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && skipped(p) ? `<div class="choose"><p>${p.req}をとばして受講しています。${p.req}も、いつでも受講できます。</p></div>` : ''}<ol class="levels">`;
+  list.forEach(c => {
+    const s = st(c.id), open = canUse(c.id);
+    const cls = s.passed ? 'done' : open ? 'open' : 'locked';
+    const tag = s.passed ? `<span class="tag done">合格（${s.best}/${c.quiz.length}）</span>` : open ? `<span class="tag open">受講できます</span>` : `<span class="tag ${unlocked(c.id) ? 'paid' : 'locked'}">${unlocked(c.id) ? '有料プランで受講できます' : lockMsg(c)}</span>`;
+    h += `<li class="lv ${cls}"><div class="num">${s.passed ? '✓' : c.id}</div><div class="body">
+      <div class="top"><h2>レベル${c.id}　${c.title}</h2>${tag}</div>
+      <p>${c.sub}・約${c.mins}分</p>
+      <div class="steps">
+        <button class="btn ${s.read ? 'sub' : ''}" data-story="${c.id}" ${open ? '' : 'disabled'}>${s.read ? '紙芝居をもう一度' : '紙芝居で学ぶ'}</button>
+        <button class="btn ${s.read && !s.passed ? '' : 'sub'}" data-quiz="${c.id}" ${open && s.read ? '' : 'disabled'}>確認テスト</button>
+      </div></div></li>`;
+  });
+  h += `</ol>`;
+  if(pdone) h += `<div class="cert"><h2>${p.name} 修了</h2><p>${p.name}の${list.length}レベルすべてに合格しました。おつかれさまでした。</p></div>`;
+  h += `</section>`;
+  });
+  h += `<p class="note">学習の記録は、このブラウザに保存されます。</p>`;
+  app.innerHTML = h;
+  app.querySelectorAll('[data-skip]').forEach(b => b.onclick = () => { const P = PARTS.find(x => x.name === b.dataset.skip); const f = firstOf(P); st(f.id).skip = true; save(); home(); });
+  app.querySelectorAll('[data-story]').forEach(b => b.onclick = () => story(+b.dataset.story, 0));
+  app.querySelectorAll('[data-quiz]').forEach(b => b.onclick = () => quiz(+b.dataset.quiz));
+  window.scrollTo(0,0);
+}
+
+function story(id, n, dir){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1], s = c.slides[n], last = n === c.slides.length-1;
+  crumb.textContent = `レベル${id}　紙芝居`;
+  app.innerHTML = `<h1>${c.title}</h1>
+  <div class="butai"><div class="mado">
+    <div class="card ${dir ? 'in' : ''}" id="card" role="button" tabindex="0" aria-label="次の場面へ">
+      <div class="pg">第${n+1}場面 / 全${c.slides.length}場面</div>
+      <div class="scene">${ICON[s.i]}<div><h3>${s.h}</h3><p class="txt" style="margin-top:10px">${s.t}</p></div></div>
+      <p class="say"><b>${s.who}</b>「${s.say}」</p>
+    </div></div></div>
+  <div class="dots">${c.slides.map((_,k)=>`<i class="${k<=n?'on':''}"></i>`).join('')}</div>
+  <div class="nav">
+    <button class="btn sub" id="prev">${n === 0 ? 'コースに戻る' : '前の場面'}</button>
+    <button class="btn" id="next">${last ? '確認テストへ' : '次の場面'}</button>
+  </div>`;
+  const card = document.getElementById('card');
+  const go = () => {
+    if(last){ st(id).read = true; save(); quiz(id); return; }
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ story(id, n+1, 1); return; }
+    card.classList.add('out');
+    setTimeout(() => story(id, n+1, 1), 300);
+  };
+  document.getElementById('next').onclick = go;
+  card.onclick = go;
+  card.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
+  document.getElementById('prev').onclick = () => n === 0 ? home() : story(id, n-1);
+}
+
+function quiz(id){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1];
+  let i = 0, score = 0; const miss = [];
+  crumb.textContent = `レベル${id}　確認テスト`;
+  function show(){
+    const q = c.quiz[i];
+    app.innerHTML = `<h1>確認テスト</h1><p class="lead">レベル${id}「${c.title}」・${c.quiz.length}問中${PASS}問正解で合格</p>
+    <div class="qbox"><div class="qmeta"><span>第${i+1}問 / ${c.quiz.length}問</span><span>正解 ${score}</span></div>
+    <h2>${q.q}</h2>
+    <div class="choices">${q.c.map((t,k)=>`<button class="choice" data-k="${k}"><span class="l">${L[k]}</span><span>${esc(t)}</span></button>`).join('')}</div>
+    <div id="fb"></div></div>`;
+    app.querySelectorAll('.choice').forEach(b => b.onclick = () => answer(+b.dataset.k));
+    window.scrollTo(0,0);
+  }
+  function answer(k){
+    const q = c.quiz[i], ok = k === q.a;
+    if(ok) score++; else miss.push(i);
+    app.querySelectorAll('.choice').forEach(b => {
+      b.disabled = true;
+      const kk = +b.dataset.k;
+      if(kk === q.a) b.classList.add('right');
+      else if(kk === k) b.classList.add('wrong');
+    });
+    const last = i === c.quiz.length-1;
+    document.getElementById('fb').innerHTML = `<div class="fb ${ok?'ok':'ng'}"><strong>${ok?'正解':'不正解'}</strong>${q.e}</div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="nx">${last?'結果を見る':'次の問題'}</button></div>`;
+    const nx = document.getElementById('nx'); nx.focus();
+    nx.onclick = () => { if(last) result(); else { i++; show(); } };
+  }
+  function result(){
+    const s = st(id), pass = score >= PASS;
+    if(pass) s.passed = true;
+    s.best = Math.max(s.best, score); save();
+    const next = COURSE[id];
+    const pdone = COURSE.filter(x => x.part === c.part).every(x => st(x.id).passed);
+    const opened = pass && pdone ? PARTS.filter(P => P.req === c.part) : [];
+    const goLv = !pass ? null : (next && next.part === c.part) ? next : (opened.length ? COURSE.find(x => x.part === opened[0].name) : null);
+    const goPaid = goLv && isPaid(goLv) && !hasPlan(goLv);
+    const msg = !pass ? `${PASS}問以上の正解で合格です。紙芝居を見直してから、もう一度挑戦してみましょう。`
+      : (next && next.part === c.part) ? `レベル${next.id}「${next.title}」が解放されました。`
+      : `${c.part}を修了しました。` + (opened.length ? `${opened.map(o => o.name).join('・')}が解放されました。` : '');
+    app.innerHTML = `<h1>テスト結果</h1>
+    <div class="result">
+      <div class="score">${score}<small> / ${c.quiz.length}問</small></div>
+      <h2 style="color:var(${pass?'--ok':'--ng'});margin-top:6px">${pass ? '合格です' : 'もう少しです'}</h2>
+      <p class="lead" style="margin-inline:auto">${msg}${goPaid ? 'この先は有料プランで受講できます。' : ''}</p>
+      ${miss.length ? `<div class="review">${miss.map(m=>`<div><span class="x">第${m+1}問</span>　${c.quiz[m].q}<br>正解：${esc(c.quiz[m].c[c.quiz[m].a])}</div>`).join('')}</div>` : ''}
+      <div class="row">
+        ${goLv && !goPaid ? `<button class="btn" id="go">レベル${goLv.id}の紙芝居へ</button>` : ''}
+        ${!pass ? `<button class="btn" id="retry">もう一度テスト</button><button class="btn sub" id="reread">紙芝居を見直す</button>` : ''}
+        <button class="btn sub" id="back">コースに戻る</button>
+      </div></div>`;
+    const g = id => document.getElementById(id);
+    if(g('go')) g('go').onclick = () => story(goLv.id, 0);
+    if(g('retry')) g('retry').onclick = () => quiz(id);
+    if(g('reread')) g('reread').onclick = () => story(id, 0);
+    g('back').onclick = home;
+    window.scrollTo(0,0);
+  }
+  show();
+}
+home();
+boot();
+</script>
+
+</html>

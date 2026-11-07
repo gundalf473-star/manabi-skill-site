@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}a.brand{text-decoration:none}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>会計基礎知識コース</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 紙芝居の木の舞台（butai）を中心に、コース地図 → 紙芝居 → 確認テスト → 結果 の4画面を切り替える */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1c2632; --muted:#5a6776; --line:#d3dae2;
+  --ai:#2a4a8a; --ai-soft:#e2e9f6; --ok:#2c7a4c; --ok-soft:#e1f1e7; --ng:#b03a3a; --ng-soft:#f7e3e3;
+  --wood:#8b5a33; --wood-dark:#5d3a1f; --paper:#fbf8f0; --card-ink:#2a241c; --card-muted:#6b5f50;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.site{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:24px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ai);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+.brand svg{width:26px;height:26px;flex:none}
+.crumb{font-size:13px;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:clamp(24px,5vw,32px)}
+h2{font-size:20px}
+.lead{color:var(--muted);margin:8px 0 0;max-width:36em}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;background:var(--ai);color:var(--surface);min-height:46px}
+.btn.sub{background:transparent;color:var(--ai);border:1.5px solid var(--ai)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* コース地図 */
+.overall{margin:20px 0 28px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.levels{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.lv{display:grid;grid-template-columns:44px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.lv:not(:last-child)::before{content:"";position:absolute;left:21px;top:46px;bottom:0;width:2px;background:var(--line)}
+.lv .num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:18px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+.lv.open .num{border-color:var(--ai);color:var(--ai)}
+.lv.done .num{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.lv .body{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.lv.locked .body{opacity:.55}
+.lv .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;letter-spacing:.05em;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.tag.locked{background:var(--line);color:var(--muted)}
+.tag.open{background:var(--ai-soft);color:var(--ai)}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+.lv p{margin:6px 0 12px;color:var(--muted);font-size:14px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.steps .btn{padding:9px 14px;min-height:40px;font-size:14px}
+.part{margin-top:32px}
+.tag.free{background:var(--ok-soft);color:var(--ok)}
+.tag.paid{background:var(--paper);color:var(--wood-dark);border:1px solid var(--wood)}
+.ptitle .tag{font-size:12px;font-family:var(--f-body)}
+.choose{background:var(--ai-soft);border-radius:12px;padding:14px 16px;margin:-6px 0 18px;font-size:14px}
+.choose p{margin:0 0 10px}
+.choose p:last-child{margin:0}
+.choose .hint{font-size:13px;color:var(--muted);align-self:center}
+.plan a{color:var(--ai);font-weight:700;margin-left:6px}
+.plan{border:1px dashed var(--wood);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);margin:-6px 0 18px}
+.ptitle{font-size:22px;display:flex;align-items:center;gap:12px}
+.ptitle::after{content:"";flex:1;height:1px;background:var(--line)}
+.cert{margin-top:4px;margin-bottom:8px;border:2px solid var(--ok);border-radius:12px;padding:20px;text-align:center;background:var(--ok-soft)}
+.cert h2{color:var(--ok)}
+
+/* 紙芝居の舞台 */
+.butai{background:linear-gradient(180deg,var(--wood),var(--wood-dark));border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(40,25,10,.25);margin:18px 0 14px}
+.butai .mado{background:var(--wood-dark);border-radius:6px;padding:6px;overflow:hidden;position:relative}
+.card{background:var(--paper);color:var(--card-ink);border-radius:4px;min-height:360px;padding:22px 22px 18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;cursor:pointer;user-select:none}
+.card .pg{font-size:12px;color:var(--card-muted);letter-spacing:.08em}
+.card .scene{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:center}
+.card svg{width:96px;height:96px;color:var(--card-ink)}
+.card h3{font-size:clamp(20px,4.6vw,26px)}
+.card .txt{font-family:var(--f-display);font-size:17px;line-height:1.9;margin:0}
+.card .say{font-family:var(--f-display);font-size:15px;border-left:3px solid var(--wood);padding:4px 0 4px 12px;margin:0;color:var(--card-ink)}
+.card .say b{font-size:12px;color:var(--card-muted);display:block;font-weight:500}
+.card .key{background:#fff3c4;color:var(--card-ink);padding:0 4px;border-radius:3px;font-weight:700}
+.card.out{animation:pull .32s ease-in forwards}
+.card.in{animation:slidein .3s ease-out}
+@keyframes pull{to{transform:translateX(-105%)}}
+@keyframes slidein{from{transform:translateX(30%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.card.out,.card.in{animation:none}}
+@media (max-width:520px){.card .scene{grid-template-columns:1fr}.card svg{width:72px;height:72px}.card{min-height:420px}}
+.dots{display:flex;gap:6px;justify-content:center;margin:4px 0 14px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ai)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+
+/* 確認テスト */
+.qbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+.qmeta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.qbox h2{font-size:19px;margin:10px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.6;display:grid;grid-template-columns:28px 1fr;gap:8px}
+.choice span.l{font-weight:700;color:var(--muted)}
+.choice:hover:not(:disabled){border-color:var(--ai)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.fb{margin-top:16px;padding:14px;border-radius:10px;font-size:15px}
+.fb.ok{background:var(--ok-soft)} .fb.ng{background:var(--ng-soft)}
+.fb strong{display:block;margin-bottom:4px}
+.fb.ok strong{color:var(--ok)} .fb.ng strong{color:var(--ng)}
+
+/* 結果 */
+.score{font-family:var(--f-display);font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.score small{font-size:20px;color:var(--muted)}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:18px;text-align:center}
+.result .row{justify-content:center;margin-top:18px}
+.review{text-align:left;margin-top:18px;font-size:14px;display:grid;gap:8px}
+.review div{padding:10px 12px;border-radius:8px;background:var(--bg)}
+.review .x{color:var(--ng);font-weight:700}
+.note{font-size:13px;color:var(--muted);margin-top:28px}
+</style>
+
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="6" width="56" height="42" rx="6" fill="#8b5a33"/><rect x="10" y="12" width="44" height="30" rx="2" fill="#fbf8f0"/><rect x="17" y="31" width="7" height="6" rx="1" fill="#2a4a8a"/><rect x="28.5" y="25" width="7" height="12" rx="1" fill="#2a4a8a"/><rect x="40" y="19" width="7" height="18" rx="1" fill="#2a4a8a"/><rect x="12" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/><rect x="45" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/></svg>まなびスキル研修室</a>
+    <div class="crumb" id="crumb">会計基礎知識コース</div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const ICON = {
+  person:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="32" r="16"/><path d="M18 84c4-18 16-26 30-26s26 8 30 26"/></svg>',
+  lock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="20" y="42" width="56" height="42" rx="6"/><path d="M32 42V30a16 16 0 0 1 32 0v12"/><circle cx="48" cy="61" r="5"/><path d="M48 66v8"/></svg>',
+  key:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="30" cy="48" r="16"/><path d="M46 48h38M72 48v12M82 48v8"/></svg>',
+  phone:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="28" y="10" width="40" height="76" rx="7"/><path d="M42 76h12"/><path d="M38 40h20M38 50h20" stroke-dasharray="4 4"/></svg>',
+  pc:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="12" y="16" width="72" height="48" rx="4"/><path d="M34 82h28M48 64v18"/></svg>',
+  mail:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="10" y="22" width="76" height="52" rx="5"/><path d="M10 26l38 28 38-28"/></svg>',
+  link:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M42 54a14 14 0 0 0 20 0l12-12a14 14 0 0 0-20-20l-5 5"/><path d="M54 42a14 14 0 0 0-20 0L22 54a14 14 0 0 0 20 20l5-5"/></svg>',
+  alert:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 12L88 82H8z"/><path d="M48 38v20M48 68v2"/></svg>',
+  clip:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M64 34L38 60a8 8 0 0 0 12 12l30-30a16 16 0 0 0-22-22L26 52a24 24 0 0 0 34 34l20-20"/></svg>',
+  wifi:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M10 38a54 54 0 0 1 76 0M22 52a36 36 0 0 1 52 0M34 66a18 18 0 0 1 28 0"/><circle cx="48" cy="78" r="3"/></svg>',
+  eye:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M8 48s14-26 40-26 40 26 40 26-14 26-40 26S8 48 8 48z"/><circle cx="48" cy="48" r="11"/></svg>',
+  camera:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 30h18l6-10h24l6 10h18v48H12z"/><circle cx="48" cy="53" r="14"/></svg>',
+  usb:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="30" y="34" width="36" height="52" rx="5"/><path d="M36 34V12h24v22"/><path d="M42 20h4M50 20h4"/></svg>',
+  ai:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M14 20h68v44H42L26 78V64H14z"/><path d="M30 38h36M30 48h22" stroke-linecap="round"/></svg>',
+  money:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="44" rx="5"/><circle cx="48" cy="48" r="11"/><path d="M20 36v24M76 36v24"/></svg>',
+  shield:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 10l32 12v24c0 20-14 34-32 40-18-6-32-20-32-40V22z"/><path d="M34 48l10 10 18-20"/></svg>',
+  plug:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M14 48h22M60 48h22"/><rect x="36" y="34" width="24" height="28" rx="4"/><path d="M42 18l-6 10M58 78l6-10"/></svg>',
+  qr:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><rect x="14" y="14" width="26" height="26"/><rect x="56" y="14" width="26" height="26"/><rect x="14" y="56" width="26" height="26"/><path d="M56 56h10v10H56zM72 72h10v10H72zM72 56h10M56 76h6" stroke-linecap="round"/></svg>',
+  chat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M10 18h50v32H30L18 60V50h-8z"/><path d="M68 34h18v32h-8v10L66 66H40V58"/></svg>',
+  cloud:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M28 72a18 18 0 0 1-2-36 24 24 0 0 1 46 6 15 15 0 0 1-2 30z"/><path d="M48 62V44M40 52l8-8 8 8" stroke-linecap="round"/></svg>',
+  paper:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M24 10h34l16 16v34H24z"/><path d="M58 10v16h16"/><path d="M18 66h60v10H18zM28 76v12M40 76v12M52 76v12M64 76v12"/></svg>',
+  update:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M78 48a30 30 0 1 1-9-21"/><path d="M72 14v14H58"/><path d="M48 34v16l10 6"/></svg>',
+  voice:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="36" y="12" width="24" height="44" rx="12"/><path d="M24 46a24 24 0 0 0 48 0M48 70v14M36 84h24"/><path d="M80 30l8-4M82 46h8M80 62l8 4"/></svg>',
+  shirt:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M34 12l14 10 14-10 22 12-8 18-10-4v46H30V38l-10 4-8-18z"/><path d="M48 22v30"/></svg>',
+  speech:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 18h72v46H44L26 80V64H12z"/><circle cx="32" cy="41" r="2.5" fill="currentColor"/><circle cx="48" cy="41" r="2.5" fill="currentColor"/><circle cx="64" cy="41" r="2.5" fill="currentColor"/></svg>',
+  bow:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="62" cy="26" r="10"/><path d="M54 36L34 52v34M34 52l-2 34M48 44l8 16"/><path d="M16 86h64" stroke-dasharray="4 5"/></svg>',
+  clock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="50" r="34"/><path d="M48 30v20l14 9M40 10h16"/></svg>',
+  star:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 12l11 23 25 3-18 17 5 25-23-12-23 12 5-25-18-17 25-3z"/></svg>',
+  up:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="62" r="10"/><path d="M14 88c2-10 8-14 16-14s14 4 16 14"/><path d="M66 70V20M52 34l14-14 14 14"/></svg>',
+  down:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="42" r="10"/><path d="M14 68c2-10 8-14 16-14s14 4 16 14"/><path d="M66 20v50M52 56l14 14 14-14"/></svg>',
+  building:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M18 86V14h40v72M58 36h20v50M10 86h76"/><path d="M28 26h6M42 26h6M28 40h6M42 40h6M28 54h6M42 54h6M34 86V70h10v16" stroke-linecap="round"/></svg>',
+  note:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="18" y="12" width="52" height="72" rx="4"/><path d="M30 30h28M30 42h28M30 54h16"/><path d="M78 30L56 70l-6 6 2-8 22-40z"/></svg>',
+  card:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="46" rx="4"/><path d="M22 40h30M22 52h20M22 62h26"/><circle cx="70" cy="46" r="7"/></svg>',
+  seat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="30" y="34" width="36" height="28" rx="3"/><rect x="36" y="14" width="24" height="12" rx="3"/><rect x="36" y="70" width="24" height="12" rx="3"/><path d="M80 30v40h8V30z"/><path d="M10 48h12" stroke-dasharray="3 4"/></svg>',
+  scale:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12v72M30 84h36M18 24h60"/><path d="M18 24L8 52h20zM78 24L68 52h20z"/></svg>',
+  chart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v72h72"/><path d="M22 66l18-20 14 12 24-30"/><path d="M64 28h14v14"/></svg>',
+  gift:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="14" y="38" width="68" height="16"/><rect x="20" y="54" width="56" height="30"/><path d="M48 38v46M48 38c-6-14-24-16-22-4M48 38c6-14 24-16 22-4"/></svg>',
+  heart:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 82S12 60 12 36a18 18 0 0 1 36-6 18 18 0 0 1 36 6c0 24-36 46-36 46z"/></svg>',
+  report:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="12" width="56" height="74" rx="5"/><path d="M32 30h32M32 42h32M32 54h20"/><path d="M58 68l6 6 10-12"/></svg>'
+};
+const KOBA = '小林さん（経理部）';
+const SATO = '佐藤さん（新人）';
+const COURSE = [{"id":1,"title":"会計とは、決算書とは","sub":"会計の目的・財務会計と管理会計・決算書の3つ","mins":6,"slides":[{"i":"note","h":"会計は会社の「成績表」","t":"会計は、会社の活動を<span class=\"key\">お金の数字で記録し、報告するしくみ</span>です。どれだけもうけたか、どれだけ財産があるかが分かります。","who":"小林さん（経理部）","say":"経理の人だけでなく、だれにとっても役立つ知識です。"},{"i":"building","h":"社外に報告する「財務会計」","t":"株主や銀行、取引先など<span class=\"key\">社外の人</span>に、会社の成績を決まったルールで報告するための会計を<span class=\"key\">財務会計</span>といいます。","who":"佐藤さん（新人）","say":"ニュースで聞く「決算発表」ですね。"},{"i":"chart","h":"社内で使う「管理会計」","t":"商品ごとのもうけや部署ごとの予算など、<span class=\"key\">社内の判断に使うため</span>の会計を<span class=\"key\">管理会計</span>といいます。ふだんの仕事で関わるのは、主にこちらです。","who":"小林さん（経理部）","say":"「この企画は利益が出るか」を考えるときに使います。"},{"i":"paper","h":"決算書の3つの表","t":"もうけを表す<span class=\"key\">損益計算書（P/L）</span>、財産と借金を表す<span class=\"key\">貸借対照表（B/S）</span>、お金の出入りを表す<span class=\"key\">キャッシュフロー計算書（C/F）</span>。この3つを「財務三表」といいます。","who":"佐藤さん（新人）","say":"3つの表で、会社の姿が分かるんですね。"},{"i":"clock","h":"決算は1年ごと","t":"会社は<span class=\"key\">1年ごとに区切って</span>成績をまとめます。この区切りを会計期間（事業年度）といい、終わりの日を決算日といいます。日本では3月末を決算日にする会社が多くあります。","who":"小林さん（経理部）","say":"年度末が忙しいのは、決算があるからなんです。"},{"i":"star","h":"まとめ","t":"① 会計は会社の成績表　② 社外に報告する財務会計　③ 社内の判断に使う管理会計　④ P/L・B/S・C/Fの財務三表　⑤ 1年ごとに決算。","who":"小林さん（経理部）","say":"では、確認テストに挑戦しましょう。"}],"quiz":[{"q":"「財務三表」の組み合わせとして正しいのは？","c":["損益計算書・貸借対照表・キャッシュフロー計算書","損益計算書・貸借対照表・給与明細","貸借対照表・予算表・売上台帳"],"a":0,"e":"財務三表は、P/L・B/S・C/Fの3つです。"},{"q":"一定の期間に「どれだけもうけたか」を表す表は？","c":["貸借対照表","損益計算書","キャッシュフロー計算書"],"a":1,"e":"損益計算書（P/L）は、期間の収益・費用・利益を表します。"},{"q":"商品ごとのもうけを計算して、社内の判断に使う会計は？","c":["財務会計","税務会計","管理会計"],"a":2,"e":"社内の意思決定に使うのが管理会計です。"},{"q":"株主や銀行など、社外の人に会社の成績を報告するための会計は？","c":["管理会計","財務会計","原価計算"],"a":1,"e":"決まったルールで社外に報告するのが財務会計です。"},{"q":"会社の「お金の出入り」を表す表は？","c":["キャッシュフロー計算書","損益計算書","貸借対照表"],"a":0,"e":"キャッシュフロー計算書（C/F）は、現金がどう入ってどう出ていったかを表します。"}],"part":"入門編"},{"id":2,"title":"損益計算書（P/L）を読む","sub":"5つの利益・粗利と粗利率","mins":7,"slides":[{"i":"paper","h":"P/Lは上から下へ読む","t":"損益計算書は、<span class=\"key\">売上高</span>から順にいろいろな費用を引いていき、最後に会社に残るもうけまでを表します。途中で<span class=\"key\">5つの利益</span>が出てきます。","who":"小林さん（経理部）","say":"上から順番に、ひとつずつ見ていきましょう。"},{"i":"money","h":"① 売上総利益（粗利）","t":"売上高から、商品の仕入れや製造にかかった<span class=\"key\">売上原価</span>を引いたものが<span class=\"key\">売上総利益</span>です。「粗利（あらり）」とも呼ばれます。売上1,000万円・原価600万円なら、粗利は400万円です。","who":"佐藤さん（新人）","say":"粗利÷売上高が「粗利率」ですね。この例だと40％です。"},{"i":"building","h":"② 営業利益は「本業のもうけ」","t":"粗利から、人件費・家賃・広告費などの<span class=\"key\">販売費及び一般管理費（販管費）</span>を引いたものが<span class=\"key\">営業利益</span>です。本業でどれだけかせいだかを表す、とても大切な利益です。","who":"小林さん（経理部）","say":"まずは営業利益を見る習慣をつけてください。"},{"i":"chart","h":"③ 経常利益","t":"営業利益に、受け取った利息などの<span class=\"key\">営業外収益</span>を足し、借入金の利息などの<span class=\"key\">営業外費用</span>を引いたものが<span class=\"key\">経常利益</span>です。ふだんの活動全体でのもうけを表します。","who":"佐藤さん（新人）","say":"借金の利息は、ここで引かれるんですね。"},{"i":"alert","h":"④⑤ 一時的なものと税金","t":"災害の損失や土地の売却益など、その年だけの<span class=\"key\">特別損益</span>を加えたものが<span class=\"key\">税引前当期純利益</span>。そこから法人税などを引いた、最後に残るもうけが<span class=\"key\">当期純利益</span>です。","who":"小林さん（経理部）","say":"5つの利益、それぞれ意味がちがいます。"},{"i":"star","h":"まとめ","t":"① 売上総利益＝売上高－売上原価　② 営業利益＝本業のもうけ　③ 経常利益＝ふだんの活動全体のもうけ　④ 税引前当期純利益＝特別損益も含む　⑤ 当期純利益＝最後に残るもうけ。","who":"小林さん（経理部）","say":"では、確認テストです。計算問題もありますよ。"}],"quiz":[{"q":"「本業のもうけ」を表す利益は？","c":["営業利益","経常利益","当期純利益"],"a":0,"e":"売上総利益から販管費を引いた営業利益が、本業のもうけです。"},{"q":"売上高1,000万円、売上原価600万円のとき、売上総利益は？","c":["600万円","400万円","1,600万円"],"a":1,"e":"1,000万円 － 600万円 ＝ 400万円です。"},{"q":"前の問題の会社の粗利率（売上総利益÷売上高）は？","c":["60％","25％","40％"],"a":2,"e":"400万円 ÷ 1,000万円 ＝ 40％です。"},{"q":"銀行からの借入金の利息が差し引かれて計算されるのは、どの利益から？","c":["売上総利益","営業利益","経常利益"],"a":2,"e":"支払利息は営業外費用なので、経常利益を計算するときに引かれます。"},{"q":"工場の火災による損失は、損益計算書のどこに入る？","c":["特別損失","販売費及び一般管理費","売上原価"],"a":0,"e":"その年だけの一時的な損失は、特別損失に入ります。"}],"part":"入門編"},{"id":3,"title":"貸借対照表とキャッシュフロー","sub":"B/Sのしくみ・自己資本比率・C/Fの3区分・黒字倒産","mins":7,"slides":[{"i":"scale","h":"B/Sは左右でつり合う","t":"貸借対照表は、左に<span class=\"key\">資産</span>、右に<span class=\"key\">負債と純資産</span>を書きます。右側は「お金をどう集めたか」、左側は「そのお金を何に使っているか」を表し、<span class=\"key\">資産＝負債＋純資産</span>になります。","who":"小林さん（経理部）","say":"「バランスシート」と呼ばれる理由です。"},{"i":"clock","h":"流動と固定","t":"1年以内に現金になる資産や、1年以内に返す負債を<span class=\"key\">流動</span>、それより長いものを<span class=\"key\">固定</span>といいます。現金や売掛金は流動資産、建物や機械は固定資産です。","who":"佐藤さん（新人）","say":"1年が区切りなんですね。"},{"i":"shield","h":"安全性を見る「自己資本比率」","t":"<span class=\"key\">純資産 ÷ 総資産</span>で計算します。返さなくてよいお金の割合が高いほど、会社は安定しているといえます。総資産1億円・純資産4,000万円なら40％です。","who":"小林さん（経理部）","say":"取引先の安全性を見るときにも使えます。"},{"i":"money","h":"C/Fは3つに分ける","t":"<span class=\"key\">営業キャッシュフロー</span>（本業での出入り）、<span class=\"key\">投資キャッシュフロー</span>（設備の購入や売却）、<span class=\"key\">財務キャッシュフロー</span>（借入や返済）の3つに分けて、お金の流れを表します。","who":"佐藤さん（新人）","say":"工場を建てたら投資、銀行から借りたら財務ですね。"},{"i":"alert","h":"もうかっているのにつぶれる？","t":"売上を掛けで計上して利益が出ていても、代金の入金が遅れると現金が足りなくなります。支払いができず会社が立ち行かなくなることを<span class=\"key\">黒字倒産</span>といいます。","who":"小林さん（経理部）","say":"利益と現金はちがう。これが会計の大事なポイントです。"},{"i":"star","h":"まとめ","t":"① 資産＝負債＋純資産　② 1年を区切りに流動と固定　③ 自己資本比率＝純資産÷総資産　④ C/Fは営業・投資・財務　⑤ 利益が出ていても現金不足に注意。","who":"小林さん（経理部）","say":"では、確認テストです。"}],"quiz":[{"q":"貸借対照表の関係として正しいのは？","c":["資産＝負債＋純資産","資産＝負債－純資産","資産＋負債＝純資産"],"a":0,"e":"左の資産と、右の負債・純資産の合計は必ず同じになります。"},{"q":"総資産1億円、純資産4,000万円の会社の自己資本比率は？","c":["60％","40％","25％"],"a":1,"e":"4,000万円 ÷ 1億円 ＝ 40％です。"},{"q":"新しい工場の機械を買ったお金は、キャッシュフロー計算書のどこに入る？","c":["営業キャッシュフロー","財務キャッシュフロー","投資キャッシュフロー"],"a":2,"e":"設備の購入や売却は、投資キャッシュフローです。"},{"q":"銀行からお金を借りたときの入金は、どこに入る？","c":["財務キャッシュフロー","営業キャッシュフロー","投資キャッシュフロー"],"a":0,"e":"借入や返済は、財務キャッシュフローです。"},{"q":"「黒字倒産」の説明として正しいのは？","c":["赤字が何年も続いて倒産すること","利益は出ているのに、現金が足りず支払いができなくなること","税金を多く払いすぎて倒産すること"],"a":1,"e":"利益と手元の現金は一致しません。入金のタイミングが大切です。"}],"part":"入門編"},{"id":4,"title":"仕事で使う会計の数字","sub":"固定費と変動費・損益分岐点・減価償却・前年比","mins":7,"slides":[{"i":"building","h":"固定費と変動費","t":"売上に関係なく毎月かかる家賃や正社員の給与などを<span class=\"key\">固定費</span>、仕入れ代や送料のように売上に合わせて増える費用を<span class=\"key\">変動費</span>といいます。","who":"小林さん（経理部）","say":"企画を考えるとき、まずこの2つに分けてみましょう。"},{"i":"scale","h":"損益分岐点","t":"利益がちょうど0になる売上高を<span class=\"key\">損益分岐点売上高</span>といいます。<span class=\"key\">固定費 ÷（1－変動費率）</span>で求めます。固定費300万円・変動費率40％なら、300÷0.6で500万円です。","who":"佐藤さん（新人）","say":"500万円より売れれば黒字なんですね。"},{"i":"update","h":"減価償却","t":"機械やパソコンなど長く使うものは、買った年に全額を費用にせず、<span class=\"key\">使う年数に分けて少しずつ費用に</span>します。これを減価償却といいます。","who":"小林さん（経理部）","say":"5年使うなら、5年に分けて費用にするイメージです。"},{"i":"chart","h":"前年比と構成比","t":"<span class=\"key\">前年比＝今年の数字÷前年の数字</span>。売上が800万円から1,000万円になれば125％です。全体に占める割合は<span class=\"key\">構成比</span>といい、会議の資料でよく使われます。","who":"佐藤さん（新人）","say":"「125％」と「25％増」は同じ意味ですね。"},{"i":"report","h":"予算と実績をくらべる","t":"年の初めに立てた<span class=\"key\">予算</span>と、実際の<span class=\"key\">実績</span>をくらべることを予実管理といいます。ずれが大きいときは、原因を考えて手を打ちます。予算1,000万円・実績900万円なら達成率は90％です。","who":"小林さん（経理部）","say":"これで会計基礎知識の入門編はおしまい。最後のテストです。"},{"i":"star","h":"まとめ","t":"① 費用は固定費と変動費に分ける　② 損益分岐点＝固定費÷（1－変動費率）　③ 減価償却は使う年数に分けて費用に　④ 前年比と構成比　⑤ 予算と実績をくらべる。","who":"小林さん（経理部）","say":"数字に強くなると、仕事の見え方が変わりますよ。"}],"quiz":[{"q":"変動費にあたるものはどれ？","c":["事務所の家賃","正社員の基本給","商品の仕入れ代"],"a":2,"e":"仕入れ代は売上に合わせて増えるので変動費です。家賃や基本給は固定費です。"},{"q":"固定費300万円、変動費率40％のとき、損益分岐点売上高は？","c":["500万円","750万円","420万円"],"a":0,"e":"300万円 ÷（1－0.4）＝ 500万円です。"},{"q":"減価償却の説明として正しいのは？","c":["古くなった設備を処分すること","長く使う設備の購入代金を、使う年数に分けて費用にすること","設備を買った年に全額を費用にすること"],"a":1,"e":"長く使うものは、使う期間に分けて少しずつ費用にします。"},{"q":"前年の売上800万円、今年の売上1,000万円。前年比は？","c":["120％","80％","125％"],"a":2,"e":"1,000万円 ÷ 800万円 ＝ 125％です。"},{"q":"予算1,000万円に対して、実績が900万円でした。予算達成率は？","c":["90％","110％","10％"],"a":0,"e":"900万円 ÷ 1,000万円 ＝ 90％です。"}],"part":"入門編"},{"id":5,"part":"中級編","title":"経営分析の指標","sub":"ROE・ROA・流動比率・営業利益率","mins":7,"slides":[],"quiz":[]},{"id":6,"part":"中級編","title":"利益を生む判断の会計","sub":"限界利益・安全余裕率・埋没費用・機会費用","mins":7,"slides":[],"quiz":[]}];
+const PARTS = [{"name":"入門編","lead":"決算書や会議の数字が読めるようになる、会社員のための会計の基本。"},{"name":"中級編","paid":true,"plan":"kaikei","price":1000,"req":"入門編","lead":"入門編の修了後に解放。経営指標と、数字にもとづく判断のしかた。"}];
+const PASS = 4;
+const KEY = 'manabi-skill-kaikei-v1';
+let prog = {};
+try{ prog = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ prog = {}; }
+let pushTimer = null;
+function myCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(prog)); }catch(e){}
+  const code = myCode(); if(!code) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => { post('/progress/save', { code, key: KEY, data: prog }).catch(() => {}); }, 600);
+}
+function mergeInto(remote){
+  for(const [id, v] of Object.entries(remote || {})){
+    const o = prog[id] || (prog[id] = { read:false, passed:false, best:0 });
+    o.read = !!(o.read || v.read); o.passed = !!(o.passed || v.passed); o.best = Math.max(o.best || 0, v.best || 0);
+  }
+}
+function st(id){ return prog[id] || (prog[id] = {read:false, passed:false, best:0}); }
+function unlocked(id){ const c = COURSE[id-1], p = COURSE[id-2]; if(p && p.part === c.part) return st(p.id).passed; const P = PARTS.find(x => x.name === c.part); return reqDone(P) || (hasPlan(P) && skipped(P)); }
+function firstOf(P){ return COURSE.find(c => c.part === P.name); }
+function reqDone(P){ return !P.req || COURSE.filter(x => x.part === P.req).every(x => st(x.id).passed); }
+function skipped(P){ const f = firstOf(P); return !!(f && prog[f.id] && prog[f.id].skip); }
+function isPaid(c){ return !!PARTS.find(x => x.name === c.part).paid; }
+const API = 'https://api.manabiskill.com';
+let PLANS = {}, LOADED = {};
+function hasPlan(x){ const P = x.plan ? x : PARTS.find(y => y.name === x.part); return !!(P.plan && PLANS[P.plan] && new Date(PLANS[P.plan]) > new Date() && LOADED[P.plan]); }
+async function post(path, body){ const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!r.ok) throw new Error(path); return r.json(); }
+async function boot(){
+  let code = null;
+  try{ code = localStorage.getItem('manabi-skill-code'); }catch(e){}
+  if(!code || !PARTS.some(p => p.paid)) return;
+  try{
+    const v = await post('/verify', { code });
+    PLANS = v.plans || {};
+    try{ const pr = await post('/progress/load', { code }); mergeInto((pr.data || {})[KEY]); save(); }catch(e){}
+    for(const P of PARTS.filter(p => p.paid && PLANS[p.plan])){
+      try{
+        const data = await post('/content', { code, plan: P.plan });
+        for(const lv of data.levels){ const t = COURSE.find(c => c.part === P.name && c.title === lv.title); if(t){ t.slides = lv.slides; t.quiz = lv.quiz; } }
+        LOADED[P.plan] = true;
+      }catch(e){}
+    }
+    if(document.querySelector('.levels')) home();
+  }catch(e){}
+}
+function canUse(id){ return unlocked(id) && (!isPaid(COURSE[id-1]) || hasPlan(COURSE[id-1])); }
+function lockMsg(c){ const p = COURSE[c.id-2]; if(p && p.part === c.part) return '前のレベルに合格で解放'; return `${PARTS.find(x => x.name === c.part).req}の修了で解放`; }
+
+const app = document.getElementById('app');
+const crumb = document.getElementById('crumb');
+const L = 'ABCD';
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function home(){
+  crumb.textContent = '会計基礎知識コース';
+  const done = COURSE.filter(c => st(c.id).passed).length;
+  let h = `<h1>会計基礎知識コース</h1>
+  <p class="lead">紙芝居で学び、確認テストで${COURSE[0].quiz.length}問中${PASS}問正解すると次のレベルに進めます。全${COURSE.length}レベルです。</p>
+  <div class="overall"><span>修了 ${done} / ${COURSE.length}</span><div class="bar"><i style="width:${done/COURSE.length*100}%"></i></div></div>`;
+  PARTS.forEach(p => {
+  const list = COURSE.filter(c => c.part === p.name);
+  const pdone = list.every(c => st(c.id).passed);
+  h += `<section class="part"><h2 class="ptitle">${p.name}<span class="tag ${p.paid ? 'paid' : 'free'}">${p.paid ? '有料' : '無料'}</span></h2><p class="lead" style="margin:4px 0 16px">${p.lead}</p>${p.paid && !hasPlan(p) ? `<div class="plan">この内容は有料プラン（1年 ${p.price.toLocaleString()}円）で受講できます。<a href="pricing.html">料金を見る</a><a href="pricing.html#code">受講コードを入力</a></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && !skipped(p) ? `<div class="choose"><p>購入ありがとうございます。<b>${p.req}</b>を修了してから進むか、${p.req}をとばしてすぐに始めるかを選べます。</p><div class="steps"><button class="btn" data-skip="${p.name}">すぐに始める</button><span class="hint">選ばなければ、${p.req}の修了後に解放されます。${p.req}は、いつでも受講できます。</span></div></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && skipped(p) ? `<div class="choose"><p>${p.req}をとばして受講しています。${p.req}も、いつでも受講できます。</p></div>` : ''}<ol class="levels">`;
+  list.forEach(c => {
+    const s = st(c.id), open = canUse(c.id);
+    const cls = s.passed ? 'done' : open ? 'open' : 'locked';
+    const tag = s.passed ? `<span class="tag done">合格（${s.best}/${c.quiz.length}）</span>` : open ? `<span class="tag open">受講できます</span>` : `<span class="tag ${unlocked(c.id) ? 'paid' : 'locked'}">${unlocked(c.id) ? '有料プランで受講できます' : lockMsg(c)}</span>`;
+    h += `<li class="lv ${cls}"><div class="num">${s.passed ? '✓' : c.id}</div><div class="body">
+      <div class="top"><h2>レベル${c.id}　${c.title}</h2>${tag}</div>
+      <p>${c.sub}・約${c.mins}分</p>
+      <div class="steps">
+        <button class="btn ${s.read ? 'sub' : ''}" data-story="${c.id}" ${open ? '' : 'disabled'}>${s.read ? '紙芝居をもう一度' : '紙芝居で学ぶ'}</button>
+        <button class="btn ${s.read && !s.passed ? '' : 'sub'}" data-quiz="${c.id}" ${open && s.read ? '' : 'disabled'}>確認テスト</button>
+      </div></div></li>`;
+  });
+  h += `</ol>`;
+  if(pdone) h += `<div class="cert"><h2>${p.name} 修了</h2><p>${p.name}の${list.length}レベルすべてに合格しました。おつかれさまでした。</p></div>`;
+  h += `</section>`;
+  });
+  h += `<p class="note">学習の記録は、このブラウザに保存されます。</p>`;
+  app.innerHTML = h;
+  app.querySelectorAll('[data-skip]').forEach(b => b.onclick = () => { const P = PARTS.find(x => x.name === b.dataset.skip); const f = firstOf(P); st(f.id).skip = true; save(); home(); });
+  app.querySelectorAll('[data-story]').forEach(b => b.onclick = () => story(+b.dataset.story, 0));
+  app.querySelectorAll('[data-quiz]').forEach(b => b.onclick = () => quiz(+b.dataset.quiz));
+  window.scrollTo(0,0);
+}
+
+function story(id, n, dir){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1], s = c.slides[n], last = n === c.slides.length-1;
+  crumb.textContent = `レベル${id}　紙芝居`;
+  app.innerHTML = `<h1>${c.title}</h1>
+  <div class="butai"><div class="mado">
+    <div class="card ${dir ? 'in' : ''}" id="card" role="button" tabindex="0" aria-label="次の場面へ">
+      <div class="pg">第${n+1}場面 / 全${c.slides.length}場面</div>
+      <div class="scene">${ICON[s.i]}<div><h3>${s.h}</h3><p class="txt" style="margin-top:10px">${s.t}</p></div></div>
+      <p class="say"><b>${s.who}</b>「${s.say}」</p>
+    </div></div></div>
+  <div class="dots">${c.slides.map((_,k)=>`<i class="${k<=n?'on':''}"></i>`).join('')}</div>
+  <div class="nav">
+    <button class="btn sub" id="prev">${n === 0 ? 'コースに戻る' : '前の場面'}</button>
+    <button class="btn" id="next">${last ? '確認テストへ' : '次の場面'}</button>
+  </div>`;
+  const card = document.getElementById('card');
+  const go = () => {
+    if(last){ st(id).read = true; save(); quiz(id); return; }
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ story(id, n+1, 1); return; }
+    card.classList.add('out');
+    setTimeout(() => story(id, n+1, 1), 300);
+  };
+  document.getElementById('next').onclick = go;
+  card.onclick = go;
+  card.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
+  document.getElementById('prev').onclick = () => n === 0 ? home() : story(id, n-1);
+}
+
+function quiz(id){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1];
+  let i = 0, score = 0; const miss = [];
+  crumb.textContent = `レベル${id}　確認テスト`;
+  function show(){
+    const q = c.quiz[i];
+    app.innerHTML = `<h1>確認テスト</h1><p class="lead">レベル${id}「${c.title}」・${c.quiz.length}問中${PASS}問正解で合格</p>
+    <div class="qbox"><div class="qmeta"><span>第${i+1}問 / ${c.quiz.length}問</span><span>正解 ${score}</span></div>
+    <h2>${q.q}</h2>
+    <div class="choices">${q.c.map((t,k)=>`<button class="choice" data-k="${k}"><span class="l">${L[k]}</span><span>${esc(t)}</span></button>`).join('')}</div>
+    <div id="fb"></div></div>`;
+    app.querySelectorAll('.choice').forEach(b => b.onclick = () => answer(+b.dataset.k));
+    window.scrollTo(0,0);
+  }
+  function answer(k){
+    const q = c.quiz[i], ok = k === q.a;
+    if(ok) score++; else miss.push(i);
+    app.querySelectorAll('.choice').forEach(b => {
+      b.disabled = true;
+      const kk = +b.dataset.k;
+      if(kk === q.a) b.classList.add('right');
+      else if(kk === k) b.classList.add('wrong');
+    });
+    const last = i === c.quiz.length-1;
+    document.getElementById('fb').innerHTML = `<div class="fb ${ok?'ok':'ng'}"><strong>${ok?'正解':'不正解'}</strong>${q.e}</div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="nx">${last?'結果を見る':'次の問題'}</button></div>`;
+    const nx = document.getElementById('nx'); nx.focus();
+    nx.onclick = () => { if(last) result(); else { i++; show(); } };
+  }
+  function result(){
+    const s = st(id), pass = score >= PASS;
+    if(pass) s.passed = true;
+    s.best = Math.max(s.best, score); save();
+    const next = COURSE[id];
+    const pdone = COURSE.filter(x => x.part === c.part).every(x => st(x.id).passed);
+    const opened = pass && pdone ? PARTS.filter(P => P.req === c.part) : [];
+    const goLv = !pass ? null : (next && next.part === c.part) ? next : (opened.length ? COURSE.find(x => x.part === opened[0].name) : null);
+    const goPaid = goLv && isPaid(goLv) && !hasPlan(goLv);
+    const msg = !pass ? `${PASS}問以上の正解で合格です。紙芝居を見直してから、もう一度挑戦してみましょう。`
+      : (next && next.part === c.part) ? `レベル${next.id}「${next.title}」が解放されました。`
+      : `${c.part}を修了しました。` + (opened.length ? `${opened.map(o => o.name).join('・')}が解放されました。` : '');
+    app.innerHTML = `<h1>テスト結果</h1>
+    <div class="result">
+      <div class="score">${score}<small> / ${c.quiz.length}問</small></div>
+      <h2 style="color:var(${pass?'--ok':'--ng'});margin-top:6px">${pass ? '合格です' : 'もう少しです'}</h2>
+      <p class="lead" style="margin-inline:auto">${msg}${goPaid ? 'この先は有料プランで受講できます。' : ''}</p>
+      ${miss.length ? `<div class="review">${miss.map(m=>`<div><span class="x">第${m+1}問</span>　${c.quiz[m].q}<br>正解：${esc(c.quiz[m].c[c.quiz[m].a])}</div>`).join('')}</div>` : ''}
+      <div class="row">
+        ${goLv && !goPaid ? `<button class="btn" id="go">レベル${goLv.id}の紙芝居へ</button>` : ''}
+        ${!pass ? `<button class="btn" id="retry">もう一度テスト</button><button class="btn sub" id="reread">紙芝居を見直す</button>` : ''}
+        <button class="btn sub" id="back">コースに戻る</button>
+      </div></div>`;
+    const g = id => document.getElementById(id);
+    if(g('go')) g('go').onclick = () => story(goLv.id, 0);
+    if(g('retry')) g('retry').onclick = () => quiz(id);
+    if(g('reread')) g('reread').onclick = () => story(id, 0);
+    g('back').onclick = home;
+    window.scrollTo(0,0);
+  }
+  show();
+}
+home();
+boot();
+</script>
+
+</html>

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}a.brand{text-decoration:none}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>ビジネスマナーコース</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 紙芝居の木の舞台（butai）を中心に、コース地図 → 紙芝居 → 確認テスト → 結果 の4画面を切り替える */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1c2632; --muted:#5a6776; --line:#d3dae2;
+  --ai:#2a4a8a; --ai-soft:#e2e9f6; --ok:#2c7a4c; --ok-soft:#e1f1e7; --ng:#b03a3a; --ng-soft:#f7e3e3;
+  --wood:#8b5a33; --wood-dark:#5d3a1f; --paper:#fbf8f0; --card-ink:#2a241c; --card-muted:#6b5f50;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025; --ng:#ef8a8a; --ng-soft:#3a1f1f;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.site{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:24px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ai);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+.brand svg{width:26px;height:26px;flex:none}
+.crumb{font-size:13px;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:clamp(24px,5vw,32px)}
+h2{font-size:20px}
+.lead{color:var(--muted);margin:8px 0 0;max-width:36em}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;background:var(--ai);color:var(--surface);min-height:46px}
+.btn.sub{background:transparent;color:var(--ai);border:1.5px solid var(--ai)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* コース地図 */
+.overall{margin:20px 0 28px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.levels{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.lv{display:grid;grid-template-columns:44px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.lv:not(:last-child)::before{content:"";position:absolute;left:21px;top:46px;bottom:0;width:2px;background:var(--line)}
+.lv .num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:18px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+.lv.open .num{border-color:var(--ai);color:var(--ai)}
+.lv.done .num{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.lv .body{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.lv.locked .body{opacity:.55}
+.lv .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;letter-spacing:.05em;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.tag.locked{background:var(--line);color:var(--muted)}
+.tag.open{background:var(--ai-soft);color:var(--ai)}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+.lv p{margin:6px 0 12px;color:var(--muted);font-size:14px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.steps .btn{padding:9px 14px;min-height:40px;font-size:14px}
+.part{margin-top:32px}
+.tag.free{background:var(--ok-soft);color:var(--ok)}
+.tag.paid{background:var(--paper);color:var(--wood-dark);border:1px solid var(--wood)}
+.ptitle .tag{font-size:12px;font-family:var(--f-body)}
+.choose{background:var(--ai-soft);border-radius:12px;padding:14px 16px;margin:-6px 0 18px;font-size:14px}
+.choose p{margin:0 0 10px}
+.choose p:last-child{margin:0}
+.choose .hint{font-size:13px;color:var(--muted);align-self:center}
+.plan a{color:var(--ai);font-weight:700;margin-left:6px}
+.plan{border:1px dashed var(--wood);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--muted);margin:-6px 0 18px}
+.ptitle{font-size:22px;display:flex;align-items:center;gap:12px}
+.ptitle::after{content:"";flex:1;height:1px;background:var(--line)}
+.cert{margin-top:4px;margin-bottom:8px;border:2px solid var(--ok);border-radius:12px;padding:20px;text-align:center;background:var(--ok-soft)}
+.cert h2{color:var(--ok)}
+
+/* 紙芝居の舞台 */
+.butai{background:linear-gradient(180deg,var(--wood),var(--wood-dark));border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(40,25,10,.25);margin:18px 0 14px}
+.butai .mado{background:var(--wood-dark);border-radius:6px;padding:6px;overflow:hidden;position:relative}
+.card{background:var(--paper);color:var(--card-ink);border-radius:4px;min-height:360px;padding:22px 22px 18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;cursor:pointer;user-select:none}
+.card .pg{font-size:12px;color:var(--card-muted);letter-spacing:.08em}
+.card .scene{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:center}
+.card svg{width:96px;height:96px;color:var(--card-ink)}
+.card h3{font-size:clamp(20px,4.6vw,26px)}
+.card .txt{font-family:var(--f-display);font-size:17px;line-height:1.9;margin:0}
+.card .say{font-family:var(--f-display);font-size:15px;border-left:3px solid var(--wood);padding:4px 0 4px 12px;margin:0;color:var(--card-ink)}
+.card .say b{font-size:12px;color:var(--card-muted);display:block;font-weight:500}
+.card .key{background:#fff3c4;color:var(--card-ink);padding:0 4px;border-radius:3px;font-weight:700}
+.card.out{animation:pull .32s ease-in forwards}
+.card.in{animation:slidein .3s ease-out}
+@keyframes pull{to{transform:translateX(-105%)}}
+@keyframes slidein{from{transform:translateX(30%);opacity:0}}
+@media (prefers-reduced-motion: reduce){.card.out,.card.in{animation:none}}
+@media (max-width:520px){.card .scene{grid-template-columns:1fr}.card svg{width:72px;height:72px}.card{min-height:420px}}
+.dots{display:flex;gap:6px;justify-content:center;margin:4px 0 14px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ai)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+
+/* 確認テスト */
+.qbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+.qmeta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.qbox h2{font-size:19px;margin:10px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.6;display:grid;grid-template-columns:28px 1fr;gap:8px}
+.choice span.l{font-weight:700;color:var(--muted)}
+.choice:hover:not(:disabled){border-color:var(--ai)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.fb{margin-top:16px;padding:14px;border-radius:10px;font-size:15px}
+.fb.ok{background:var(--ok-soft)} .fb.ng{background:var(--ng-soft)}
+.fb strong{display:block;margin-bottom:4px}
+.fb.ok strong{color:var(--ok)} .fb.ng strong{color:var(--ng)}
+
+/* 結果 */
+.score{font-family:var(--f-display);font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.score small{font-size:20px;color:var(--muted)}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:18px;text-align:center}
+.result .row{justify-content:center;margin-top:18px}
+.review{text-align:left;margin-top:18px;font-size:14px;display:grid;gap:8px}
+.review div{padding:10px 12px;border-radius:8px;background:var(--bg)}
+.review .x{color:var(--ng);font-weight:700}
+.note{font-size:13px;color:var(--muted);margin-top:28px}
+</style>
+
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="6" width="56" height="42" rx="6" fill="#8b5a33"/><rect x="10" y="12" width="44" height="30" rx="2" fill="#fbf8f0"/><rect x="17" y="31" width="7" height="6" rx="1" fill="#2a4a8a"/><rect x="28.5" y="25" width="7" height="12" rx="1" fill="#2a4a8a"/><rect x="40" y="19" width="7" height="18" rx="1" fill="#2a4a8a"/><rect x="12" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/><rect x="45" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/></svg>まなびスキル研修室</a>
+    <div class="crumb" id="crumb">ビジネスマナーコース</div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const ICON = {
+  person:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="32" r="16"/><path d="M18 84c4-18 16-26 30-26s26 8 30 26"/></svg>',
+  lock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="20" y="42" width="56" height="42" rx="6"/><path d="M32 42V30a16 16 0 0 1 32 0v12"/><circle cx="48" cy="61" r="5"/><path d="M48 66v8"/></svg>',
+  key:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="30" cy="48" r="16"/><path d="M46 48h38M72 48v12M82 48v8"/></svg>',
+  phone:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="28" y="10" width="40" height="76" rx="7"/><path d="M42 76h12"/><path d="M38 40h20M38 50h20" stroke-dasharray="4 4"/></svg>',
+  pc:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="12" y="16" width="72" height="48" rx="4"/><path d="M34 82h28M48 64v18"/></svg>',
+  mail:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="10" y="22" width="76" height="52" rx="5"/><path d="M10 26l38 28 38-28"/></svg>',
+  link:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M42 54a14 14 0 0 0 20 0l12-12a14 14 0 0 0-20-20l-5 5"/><path d="M54 42a14 14 0 0 0-20 0L22 54a14 14 0 0 0 20 20l5-5"/></svg>',
+  alert:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 12L88 82H8z"/><path d="M48 38v20M48 68v2"/></svg>',
+  clip:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M64 34L38 60a8 8 0 0 0 12 12l30-30a16 16 0 0 0-22-22L26 52a24 24 0 0 0 34 34l20-20"/></svg>',
+  wifi:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M10 38a54 54 0 0 1 76 0M22 52a36 36 0 0 1 52 0M34 66a18 18 0 0 1 28 0"/><circle cx="48" cy="78" r="3"/></svg>',
+  eye:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M8 48s14-26 40-26 40 26 40 26-14 26-40 26S8 48 8 48z"/><circle cx="48" cy="48" r="11"/></svg>',
+  camera:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 30h18l6-10h24l6 10h18v48H12z"/><circle cx="48" cy="53" r="14"/></svg>',
+  usb:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="30" y="34" width="36" height="52" rx="5"/><path d="M36 34V12h24v22"/><path d="M42 20h4M50 20h4"/></svg>',
+  ai:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M14 20h68v44H42L26 78V64H14z"/><path d="M30 38h36M30 48h22" stroke-linecap="round"/></svg>',
+  money:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="44" rx="5"/><circle cx="48" cy="48" r="11"/><path d="M20 36v24M76 36v24"/></svg>',
+  shield:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M48 10l32 12v24c0 20-14 34-32 40-18-6-32-20-32-40V22z"/><path d="M34 48l10 10 18-20"/></svg>',
+  plug:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M14 48h22M60 48h22"/><rect x="36" y="34" width="24" height="28" rx="4"/><path d="M42 18l-6 10M58 78l6-10"/></svg>',
+  qr:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5"><rect x="14" y="14" width="26" height="26"/><rect x="56" y="14" width="26" height="26"/><rect x="14" y="56" width="26" height="26"/><path d="M56 56h10v10H56zM72 72h10v10H72zM72 56h10M56 76h6" stroke-linecap="round"/></svg>',
+  chat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M10 18h50v32H30L18 60V50h-8z"/><path d="M68 34h18v32h-8v10L66 66H40V58"/></svg>',
+  cloud:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M28 72a18 18 0 0 1-2-36 24 24 0 0 1 46 6 15 15 0 0 1-2 30z"/><path d="M48 62V44M40 52l8-8 8 8" stroke-linecap="round"/></svg>',
+  paper:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M24 10h34l16 16v34H24z"/><path d="M58 10v16h16"/><path d="M18 66h60v10H18zM28 76v12M40 76v12M52 76v12M64 76v12"/></svg>',
+  update:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M78 48a30 30 0 1 1-9-21"/><path d="M72 14v14H58"/><path d="M48 34v16l10 6"/></svg>',
+  voice:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="36" y="12" width="24" height="44" rx="12"/><path d="M24 46a24 24 0 0 0 48 0M48 70v14M36 84h24"/><path d="M80 30l8-4M82 46h8M80 62l8 4"/></svg>',
+  shirt:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M34 12l14 10 14-10 22 12-8 18-10-4v46H30V38l-10 4-8-18z"/><path d="M48 22v30"/></svg>',
+  speech:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M12 18h72v46H44L26 80V64H12z"/><circle cx="32" cy="41" r="2.5" fill="currentColor"/><circle cx="48" cy="41" r="2.5" fill="currentColor"/><circle cx="64" cy="41" r="2.5" fill="currentColor"/></svg>',
+  bow:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="62" cy="26" r="10"/><path d="M54 36L34 52v34M34 52l-2 34M48 44l8 16"/><path d="M16 86h64" stroke-dasharray="4 5"/></svg>',
+  clock:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><circle cx="48" cy="50" r="34"/><path d="M48 30v20l14 9M40 10h16"/></svg>',
+  star:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M48 12l11 23 25 3-18 17 5 25-23-12-23 12 5-25-18-17 25-3z"/></svg>',
+  up:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="62" r="10"/><path d="M14 88c2-10 8-14 16-14s14 4 16 14"/><path d="M66 70V20M52 34l14-14 14 14"/></svg>',
+  down:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="42" r="10"/><path d="M14 68c2-10 8-14 16-14s14 4 16 14"/><path d="M66 20v50M52 56l14 14 14-14"/></svg>',
+  building:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><path d="M18 86V14h40v72M58 36h20v50M10 86h76"/><path d="M28 26h6M42 26h6M28 40h6M42 40h6M28 54h6M42 54h6M34 86V70h10v16" stroke-linecap="round"/></svg>',
+  note:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="18" y="12" width="52" height="72" rx="4"/><path d="M30 30h28M30 42h28M30 54h16"/><path d="M78 30L56 70l-6 6 2-8 22-40z"/></svg>',
+  card:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><rect x="10" y="26" width="76" height="46" rx="4"/><path d="M22 40h30M22 52h20M22 62h26"/><circle cx="70" cy="46" r="7"/></svg>',
+  seat:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="30" y="34" width="36" height="28" rx="3"/><rect x="36" y="14" width="24" height="12" rx="3"/><rect x="36" y="70" width="24" height="12" rx="3"/><path d="M80 30v40h8V30z"/><path d="M10 48h12" stroke-dasharray="3 4"/></svg>',
+  report:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="12" width="56" height="74" rx="5"/><path d="M32 30h32M32 42h32M32 54h20"/><path d="M58 68l6 6 10-12"/></svg>'
+};
+const TAKA = '高橋さん（人事部・研修担当）';
+const SATO = '佐藤さん（新人）';
+const COURSE = [{"id":1,"title":"第一印象とあいさつ","sub":"身だしなみ・あいさつ・おじぎ・時間","mins":5,"slides":[{"i":"person","h":"第一印象は数秒で決まる","t":"初めて会った人の印象は、見た目やあいさつで<span class=\"key\">あっという間に</span>決まります。会社の一員として見られていることを意識しましょう。","who":"高橋さん（人事部・研修担当）","say":"今日からビジネスマナーの研修をはじめます。よろしくお願いします。"},{"i":"shirt","h":"身だしなみは「清潔感」","t":"おしゃれより大切なのは<span class=\"key\">清潔感</span>です。しわのない服、整えた髪、きれいな靴とつめ。相手に不快感を与えないことが基本です。","who":"佐藤さん（新人）","say":"高い服じゃなくても大丈夫なんですね。"},{"i":"speech","h":"あいさつは自分から","t":"「おはようございます」は、相手に気づいたら<span class=\"key\">自分から先に</span>。相手の顔を見て、明るくはっきり言います。あいさつは、仕事のコミュニケーションの入り口です。","who":"高橋さん（人事部・研修担当）","say":"先に言われるのを待たないのがコツです。"},{"i":"bow","h":"おじぎは3種類","t":"<span class=\"key\">会釈（15度）</span>は廊下ですれ違うとき、<span class=\"key\">敬礼（30度）</span>はお客さまを迎えるときやあいさつ、<span class=\"key\">最敬礼（45度）</span>は深いお礼やおわびのときに使います。","who":"佐藤さん（新人）","say":"場面によって角度を変えるんですね。"},{"i":"clock","h":"時間を守るのは信頼のもと","t":"会議や約束は<span class=\"key\">5分前</span>には準備をすませておきます。遅れそうなときは、分かった時点ですぐに連絡。着いてから謝るのでは遅いのです。","who":"高橋さん（人事部・研修担当）","say":"電車の遅れでも、まず連絡を入れましょう。"},{"i":"star","h":"まとめ","t":"① 清潔感のある身だしなみ　② あいさつは自分から　③ 場面に合ったおじぎ　④ 5分前行動と、遅れるときの早めの連絡。","who":"高橋さん（人事部・研修担当）","say":"では、確認テストに挑戦しましょう。"}],"quiz":[{"q":"廊下で他部署の先輩とすれ違いました。おじぎはどれ？","c":["会釈（15度）","敬礼（30度）","最敬礼（45度）"],"a":0,"e":"すれ違うときは軽い会釈が基本です。深いおじぎは、お礼やおわびの場面で使います。"},{"q":"あいさつのしかたとして、いちばんよいのはどれ？","c":["相手からあいさつされたら返す","相手に気づいたら自分から先に、顔を見て明るく言う","忙しそうな相手には、小さな声で目を合わせずに言う"],"a":1,"e":"自分から先に、相手の顔を見てはっきりと。これだけで印象が大きく変わります。"},{"q":"ビジネスの身だしなみで、いちばん大切なことは？","c":["流行を取り入れること","高いブランドを身につけること","清潔感があること"],"a":2,"e":"身だしなみは相手のためのものです。清潔感があり、不快感を与えないことが基本です。"},{"q":"9時からの会議に出席します。いつ会議室に行く？","c":["5分前には席について準備をすませる","9時ちょうどに入る","少しくらいなら遅れてもよい"],"a":0,"e":"5分前行動で、資料の準備や気持ちの切りかえができます。"},{"q":"電車が止まり、約束の時間に遅れそうです。","c":["連絡せず、とにかく急いで向かう","着いてから、ていねいに謝る","遅れると分かった時点で、すぐ相手に連絡する"],"a":2,"e":"早く連絡すれば、相手は予定を調整できます。到着予定の時刻も伝えましょう。"}],"part":"入門編"},{"id":2,"title":"敬語の基本","sub":"尊敬語・謙譲語・丁寧語とよくある間違い","mins":7,"slides":[{"i":"speech","h":"敬語は3つに分けられる","t":"相手を高める<span class=\"key\">尊敬語</span>、自分をひかえめに言う<span class=\"key\">謙譲語</span>、ていねいに言う<span class=\"key\">丁寧語</span>（〜です・〜ます）。だれの動作かで使い分けます。","who":"高橋さん（人事部・研修担当）","say":"「動いているのはだれか」を考えると分かりやすいですよ。"},{"i":"up","h":"相手の動作には「尊敬語」","t":"言う→<span class=\"key\">おっしゃる</span>、来る・行く→<span class=\"key\">いらっしゃる</span>、見る→<span class=\"key\">ご覧になる</span>、食べる→<span class=\"key\">召し上がる</span>。お客さまや上司の動作に使います。","who":"佐藤さん（新人）","say":"「課長がおっしゃいました」ですね。"},{"i":"down","h":"自分の動作には「謙譲語」","t":"言う→<span class=\"key\">申す</span>、行く→<span class=\"key\">伺う・参る</span>、見る→<span class=\"key\">拝見する</span>、もらう→<span class=\"key\">いただく</span>。自分や自分の会社の人の動作に使います。","who":"高橋さん（人事部・研修担当）","say":"「資料を拝見しました」と言えると、ぐっと社会人らしくなります。"},{"i":"alert","h":"よくある間違い","t":"「おっしゃられる」は敬語が重なった<span class=\"key\">二重敬語</span>で、「おっしゃる」で十分です。「ご苦労さま」は目下の人への言葉なので、上司には<span class=\"key\">「お疲れさまです」</span>を使います。","who":"佐藤さん（新人）","say":"ていねいにしようとして、重ねすぎてしまうんですね。"},{"i":"building","h":"社外の人には、自分の上司も「身内」","t":"社外の人と話すとき、自分の会社の人には敬称をつけません。「田中部長はいらっしゃいません」ではなく、<span class=\"key\">「部長の田中は席を外しております」</span>と言います。","who":"高橋さん（人事部・研修担当）","say":"社内と社外で言い方が変わる、大事なポイントです。"},{"i":"star","h":"まとめ","t":"① 相手の動作は尊敬語　② 自分の動作は謙譲語　③ 二重敬語に注意　④ 上司には「お疲れさまです」　⑤ 社外には自社の人を呼び捨てで。","who":"高橋さん（人事部・研修担当）","say":"では、確認テストです。"}],"quiz":[{"q":"お客さまが「言う」とき、正しい尊敬語はどれ？","c":["申す","おっしゃる","申し上げる"],"a":1,"e":"「申す」「申し上げる」は自分の動作に使う謙譲語です。相手の動作には「おっしゃる」を使います。"},{"q":"「資料を見ました」を、取引先に謙譲語で伝えるには？","c":["資料を拝見しました","資料をご覧になりました","資料を見られました"],"a":0,"e":"自分の「見る」は「拝見する」。「ご覧になる」は相手の動作に使う尊敬語です。"},{"q":"正しい言い方はどれ？","c":["社長がおっしゃられました","社長が申されました","社長がおっしゃいました"],"a":2,"e":"「おっしゃられる」は二重敬語、「申される」は謙譲語と尊敬語のまぜこぜです。"},{"q":"仕事を終えた上司に、ねぎらいの言葉をかけます。","c":["ご苦労さまです","お疲れさまです","了解です"],"a":1,"e":"「ご苦労さま」は目上の人から目下の人への言葉です。上司には「お疲れさまです」を使います。"},{"q":"取引先からの電話。自分の会社の田中部長は席にいません。","c":["田中部長はいらっしゃいません","田中さんは今いません","部長の田中は席を外しております"],"a":2,"e":"社外の人には、自分の会社の人を呼び捨てにし、謙譲表現を使います。"}],"part":"入門編"},{"id":3,"title":"電話とメールの基本","sub":"電話の受け方・伝言・メールの書き方","mins":7,"slides":[{"i":"phone","h":"電話は会社の「顔」","t":"電話に出た人の対応が、相手にとっては会社の印象になります。なるべく<span class=\"key\">3コール以内</span>に出て、「はい、○○株式会社でございます」と会社名を名乗ります。","who":"高橋さん（人事部・研修担当）","say":"「もしもし」は、ビジネスの電話では使いません。"},{"i":"note","h":"不在のときは伝言メモ","t":"電話を受けた相手が席にいないときは、<span class=\"key\">相手の会社名・名前・連絡先・用件・受けた時刻</span>、自分の名前をメモに残します。聞いた内容は復唱して確かめます。","who":"佐藤さん（新人）","say":"電話番号は、特にしっかり復唱しないとですね。"},{"i":"speech","h":"聞き取れないときの言い方","t":"声が聞こえにくいときは、「声が小さいです」ではなく<span class=\"key\">「恐れ入りますが、お電話が少々遠いようです」</span>と伝えます。相手を責めない言い方を選びます。","who":"高橋さん（人事部・研修担当）","say":"「恐れ入りますが」は、とても便利なクッション言葉です。"},{"i":"mail","h":"メールは件名で用件が分かるように","t":"件名だけで内容が分かるようにします。「お世話になっております」ではなく、<span class=\"key\">「11月20日 打ち合わせ日程のご相談」</span>のように具体的に書きます。","who":"佐藤さん（新人）","say":"たくさんのメールの中から、見つけやすくなりますね。"},{"i":"note","h":"メール本文の型","t":"<span class=\"key\">宛名 → あいさつ → 名乗り → 用件 → 結び → 署名</span>の順に書きます。用件は結論から、短く。返信はできるだけ早く、時間がかかるときは受け取ったことだけでも先に伝えます。","who":"高橋さん（人事部・研修担当）","say":"型を覚えると、メールを書くのが早くなりますよ。"},{"i":"star","h":"まとめ","t":"① 電話は早めに出て会社名を名乗る　② 伝言メモは5つの情報＋自分の名前　③ クッション言葉を使う　④ 件名は具体的に　⑤ 本文は型どおり、返信は早めに。","who":"高橋さん（人事部・研修担当）","say":"では、確認テストです。"}],"quiz":[{"q":"会社の電話に出たとき、最初に言うことは？","c":["「もしもし」","「はい、○○株式会社でございます」","相手が名乗るまで何も言わない"],"a":1,"e":"まず会社名を名乗ります。相手は正しい会社にかかったと安心できます。"},{"q":"電話の相手が指名した人は不在です。伝言メモに必要なものは？","c":["相手の会社名・名前・連絡先・用件・受けた時刻","相手の名前だけ","用件だけ"],"a":0,"e":"折り返しに必要な情報をそろえます。受けた自分の名前も書いておきましょう。"},{"q":"メールの件名として、いちばんよいものは？","c":["お世話になっております","至急","11月20日 打ち合わせ日程のご相談"],"a":2,"e":"件名を見ただけで、内容と日付が分かるのが理想です。"},{"q":"すぐに答えられない問い合わせメールが届きました。","c":["完璧な回答ができるまで返信しない","受け取ったことと、回答の目安を先に返信する","1週間以内に返せばよい"],"a":1,"e":"返事がないと相手は不安になります。まず受け取ったことを伝えましょう。"},{"q":"電話の相手の声が聞き取りにくいときは？","c":["「声が小さいです」と伝える","聞こえたふりをして話を進める","「恐れ入りますが、お電話が少々遠いようです」と伝える"],"a":2,"e":"相手を責めない言い方で伝えます。聞こえたふりは、まちがいのもとです。"}],"part":"入門編"},{"id":4,"title":"報連相と、来客・訪問","sub":"報告・連絡・相談、名刺交換、席次","mins":7,"slides":[{"i":"speech","h":"仕事の基本「報連相」","t":"<span class=\"key\">報告</span>（結果を伝える）、<span class=\"key\">連絡</span>（事実を共有する）、<span class=\"key\">相談</span>（迷ったときに意見を聞く）。チームで仕事を進めるための基本です。","who":"高橋さん（人事部・研修担当）","say":"「ほうれんそう」と覚えてくださいね。"},{"i":"up","h":"報告は結論から","t":"上司への報告は、まず<span class=\"key\">結論</span>、次に理由や経緯の順で伝えます。そして、<span class=\"key\">悪い知らせほど早く</span>。ミスに気づいたら、自分で直す前にまず報告します。","who":"佐藤さん（新人）","say":"怒られそうなことほど、早く言うんですね。"},{"i":"card","h":"名刺交換のしかた","t":"名刺交換は<span class=\"key\">立って</span>行い、訪問した側や目下の人から先に差し出します。名刺は両手で、相手が読める向きで渡し、会社名と名前を名乗ります。","who":"高橋さん（人事部・研修担当）","say":"受け取るときも両手で、「頂戴いたします」と言いましょう。"},{"i":"card","h":"受け取った名刺の置き方","t":"打ち合わせ中は、受け取った名刺を<span class=\"key\">名刺入れの上にのせて机に置き</span>ます。すぐしまったり、メモを書いたりするのは失礼です。","who":"佐藤さん（新人）","say":"名前を覚えるのにも役立ちますね。"},{"i":"seat","h":"上座と下座","t":"お客さまには<span class=\"key\">入口から遠い席（上座）</span>をすすめます。入口に近い席が下座で、案内する側が座ります。訪問したときは、すすめられるまで下座の近くで待ちます。","who":"高橋さん（人事部・研修担当）","say":"席の位置にも、相手への敬意が表れます。"},{"i":"star","h":"まとめ","t":"① 報連相をこまめに　② 報告は結論から、悪い知らせほど早く　③ 名刺は立って両手で　④ 名刺は机の上に　⑤ お客さまは上座へ。","who":"高橋さん（人事部・研修担当）","say":"これでビジネスマナー入門編はおしまい。最後のテストです。"}],"quiz":[{"q":"上司に仕事の結果を報告します。どの順で話す？","c":["結論から先に伝え、そのあと理由や経緯を話す","経緯から順番に話し、最後に結論を言う","結論は聞かれたら答える"],"a":0,"e":"結論が先にあると、聞く人は話の全体をつかみやすくなります。"},{"q":"自分のミスに気づきました。どうする？","c":["自分で直してから、報告するか決める","気づかれなければ報告しない","すぐに上司に報告する"],"a":2,"e":"早く報告すれば、被害を小さくする手が打てます。悪い知らせほど早く伝えましょう。"},{"q":"名刺交換のしかたとして正しいのはどれ？","c":["座ったまま交換する","立って、訪問した側や目下の人から先に差し出す","テーブルの上をすべらせて渡す"],"a":1,"e":"名刺交換は立って、両手で行います。訪問した側や目下の人から差し出すのが基本です。"},{"q":"打ち合わせ中、受け取った名刺はどうする？","c":["名刺入れの上にのせて、机の上に置く","すぐにポケットにしまう","名刺に打ち合わせのメモを書く"],"a":0,"e":"打ち合わせ中は机に置いておきます。名刺は相手の分身と考え、ていねいに扱います。"},{"q":"応接室にお客さまを案内しました。すすめる席は？","c":["入口にいちばん近い席","どこでもよい","入口からいちばん遠い席"],"a":2,"e":"入口から遠い席が上座です。お客さまや目上の人にすすめます。"}],"part":"入門編"},{"id":5,"part":"中級編","title":"ワンランク上の言葉づかい","sub":"クッション言葉・依頼と断り方・ビジネス文書","mins":7,"slides":[],"quiz":[]},{"id":6,"part":"中級編","title":"会議・移動・クレーム対応","sub":"会議の進め方・オンライン会議・タクシーの席次・クレーム対応","mins":7,"slides":[],"quiz":[]}];
+const PARTS = [{"name":"入門編","lead":"社会人1年目に身につけたい、ビジネスマナーの基本。"},{"name":"中級編","paid":true,"plan":"manner","price":1000,"req":"入門編","lead":"入門編の修了後に解放。社外の人とのやり取りで差がつく、一歩進んだマナー。"}];
+const PASS = 4;
+const KEY = 'manabi-skill-manner-v1';
+let prog = {};
+try{ prog = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ prog = {}; }
+let pushTimer = null;
+function myCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(prog)); }catch(e){}
+  const code = myCode(); if(!code) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => { post('/progress/save', { code, key: KEY, data: prog }).catch(() => {}); }, 600);
+}
+function mergeInto(remote){
+  for(const [id, v] of Object.entries(remote || {})){
+    const o = prog[id] || (prog[id] = { read:false, passed:false, best:0 });
+    o.read = !!(o.read || v.read); o.passed = !!(o.passed || v.passed); o.best = Math.max(o.best || 0, v.best || 0);
+  }
+}
+function st(id){ return prog[id] || (prog[id] = {read:false, passed:false, best:0}); }
+function unlocked(id){ const c = COURSE[id-1], p = COURSE[id-2]; if(p && p.part === c.part) return st(p.id).passed; const P = PARTS.find(x => x.name === c.part); return reqDone(P) || (hasPlan(P) && skipped(P)); }
+function firstOf(P){ return COURSE.find(c => c.part === P.name); }
+function reqDone(P){ return !P.req || COURSE.filter(x => x.part === P.req).every(x => st(x.id).passed); }
+function skipped(P){ const f = firstOf(P); return !!(f && prog[f.id] && prog[f.id].skip); }
+function isPaid(c){ return !!PARTS.find(x => x.name === c.part).paid; }
+const API = 'https://api.manabiskill.com';
+let PLANS = {}, LOADED = {};
+function hasPlan(x){ const P = x.plan ? x : PARTS.find(y => y.name === x.part); return !!(P.plan && PLANS[P.plan] && new Date(PLANS[P.plan]) > new Date() && LOADED[P.plan]); }
+async function post(path, body){ const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!r.ok) throw new Error(path); return r.json(); }
+async function boot(){
+  let code = null;
+  try{ code = localStorage.getItem('manabi-skill-code'); }catch(e){}
+  if(!code || !PARTS.some(p => p.paid)) return;
+  try{
+    const v = await post('/verify', { code });
+    PLANS = v.plans || {};
+    try{ const pr = await post('/progress/load', { code }); mergeInto((pr.data || {})[KEY]); save(); }catch(e){}
+    for(const P of PARTS.filter(p => p.paid && PLANS[p.plan])){
+      try{
+        const data = await post('/content', { code, plan: P.plan });
+        for(const lv of data.levels){ const t = COURSE.find(c => c.part === P.name && c.title === lv.title); if(t){ t.slides = lv.slides; t.quiz = lv.quiz; } }
+        LOADED[P.plan] = true;
+      }catch(e){}
+    }
+    if(document.querySelector('.levels')) home();
+  }catch(e){}
+}
+function canUse(id){ return unlocked(id) && (!isPaid(COURSE[id-1]) || hasPlan(COURSE[id-1])); }
+function lockMsg(c){ const p = COURSE[c.id-2]; if(p && p.part === c.part) return '前のレベルに合格で解放'; return `${PARTS.find(x => x.name === c.part).req}の修了で解放`; }
+
+const app = document.getElementById('app');
+const crumb = document.getElementById('crumb');
+const L = 'ABCD';
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function home(){
+  crumb.textContent = 'ビジネスマナーコース';
+  const done = COURSE.filter(c => st(c.id).passed).length;
+  let h = `<h1>ビジネスマナーコース</h1>
+  <p class="lead">紙芝居で学び、確認テストで${COURSE[0].quiz.length}問中${PASS}問正解すると次のレベルに進めます。全${COURSE.length}レベルです。</p>
+  <div class="overall"><span>修了 ${done} / ${COURSE.length}</span><div class="bar"><i style="width:${done/COURSE.length*100}%"></i></div></div>`;
+  PARTS.forEach(p => {
+  const list = COURSE.filter(c => c.part === p.name);
+  const pdone = list.every(c => st(c.id).passed);
+  h += `<section class="part"><h2 class="ptitle">${p.name}<span class="tag ${p.paid ? 'paid' : 'free'}">${p.paid ? '有料' : '無料'}</span></h2><p class="lead" style="margin:4px 0 16px">${p.lead}</p>${p.paid && !hasPlan(p) ? `<div class="plan">この内容は有料プラン（1年 ${p.price.toLocaleString()}円）で受講できます。<a href="pricing.html">料金を見る</a><a href="pricing.html#code">受講コードを入力</a></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && !skipped(p) ? `<div class="choose"><p>購入ありがとうございます。<b>${p.req}</b>を修了してから進むか、${p.req}をとばしてすぐに始めるかを選べます。</p><div class="steps"><button class="btn" data-skip="${p.name}">すぐに始める</button><span class="hint">選ばなければ、${p.req}の修了後に解放されます。${p.req}は、いつでも受講できます。</span></div></div>` : ''}${p.paid && hasPlan(p) && !reqDone(p) && skipped(p) ? `<div class="choose"><p>${p.req}をとばして受講しています。${p.req}も、いつでも受講できます。</p></div>` : ''}<ol class="levels">`;
+  list.forEach(c => {
+    const s = st(c.id), open = canUse(c.id);
+    const cls = s.passed ? 'done' : open ? 'open' : 'locked';
+    const tag = s.passed ? `<span class="tag done">合格（${s.best}/${c.quiz.length}）</span>` : open ? `<span class="tag open">受講できます</span>` : `<span class="tag ${unlocked(c.id) ? 'paid' : 'locked'}">${unlocked(c.id) ? '有料プランで受講できます' : lockMsg(c)}</span>`;
+    h += `<li class="lv ${cls}"><div class="num">${s.passed ? '✓' : c.id}</div><div class="body">
+      <div class="top"><h2>レベル${c.id}　${c.title}</h2>${tag}</div>
+      <p>${c.sub}・約${c.mins}分</p>
+      <div class="steps">
+        <button class="btn ${s.read ? 'sub' : ''}" data-story="${c.id}" ${open ? '' : 'disabled'}>${s.read ? '紙芝居をもう一度' : '紙芝居で学ぶ'}</button>
+        <button class="btn ${s.read && !s.passed ? '' : 'sub'}" data-quiz="${c.id}" ${open && s.read ? '' : 'disabled'}>確認テスト</button>
+      </div></div></li>`;
+  });
+  h += `</ol>`;
+  if(pdone) h += `<div class="cert"><h2>${p.name} 修了</h2><p>${p.name}の${list.length}レベルすべてに合格しました。おつかれさまでした。</p></div>`;
+  h += `</section>`;
+  });
+  h += `<p class="note">学習の記録は、このブラウザに保存されます。</p>`;
+  app.innerHTML = h;
+  app.querySelectorAll('[data-skip]').forEach(b => b.onclick = () => { const P = PARTS.find(x => x.name === b.dataset.skip); const f = firstOf(P); st(f.id).skip = true; save(); home(); });
+  app.querySelectorAll('[data-story]').forEach(b => b.onclick = () => story(+b.dataset.story, 0));
+  app.querySelectorAll('[data-quiz]').forEach(b => b.onclick = () => quiz(+b.dataset.quiz));
+  window.scrollTo(0,0);
+}
+
+function story(id, n, dir){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1], s = c.slides[n], last = n === c.slides.length-1;
+  crumb.textContent = `レベル${id}　紙芝居`;
+  app.innerHTML = `<h1>${c.title}</h1>
+  <div class="butai"><div class="mado">
+    <div class="card ${dir ? 'in' : ''}" id="card" role="button" tabindex="0" aria-label="次の場面へ">
+      <div class="pg">第${n+1}場面 / 全${c.slides.length}場面</div>
+      <div class="scene">${ICON[s.i]}<div><h3>${s.h}</h3><p class="txt" style="margin-top:10px">${s.t}</p></div></div>
+      <p class="say"><b>${s.who}</b>「${s.say}」</p>
+    </div></div></div>
+  <div class="dots">${c.slides.map((_,k)=>`<i class="${k<=n?'on':''}"></i>`).join('')}</div>
+  <div class="nav">
+    <button class="btn sub" id="prev">${n === 0 ? 'コースに戻る' : '前の場面'}</button>
+    <button class="btn" id="next">${last ? '確認テストへ' : '次の場面'}</button>
+  </div>`;
+  const card = document.getElementById('card');
+  const go = () => {
+    if(last){ st(id).read = true; save(); quiz(id); return; }
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ story(id, n+1, 1); return; }
+    card.classList.add('out');
+    setTimeout(() => story(id, n+1, 1), 300);
+  };
+  document.getElementById('next').onclick = go;
+  card.onclick = go;
+  card.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
+  document.getElementById('prev').onclick = () => n === 0 ? home() : story(id, n-1);
+}
+
+function quiz(id){
+  if(!canUse(id)) return home();
+  const c = COURSE[id-1];
+  let i = 0, score = 0; const miss = [];
+  crumb.textContent = `レベル${id}　確認テスト`;
+  function show(){
+    const q = c.quiz[i];
+    app.innerHTML = `<h1>確認テスト</h1><p class="lead">レベル${id}「${c.title}」・${c.quiz.length}問中${PASS}問正解で合格</p>
+    <div class="qbox"><div class="qmeta"><span>第${i+1}問 / ${c.quiz.length}問</span><span>正解 ${score}</span></div>
+    <h2>${q.q}</h2>
+    <div class="choices">${q.c.map((t,k)=>`<button class="choice" data-k="${k}"><span class="l">${L[k]}</span><span>${esc(t)}</span></button>`).join('')}</div>
+    <div id="fb"></div></div>`;
+    app.querySelectorAll('.choice').forEach(b => b.onclick = () => answer(+b.dataset.k));
+    window.scrollTo(0,0);
+  }
+  function answer(k){
+    const q = c.quiz[i], ok = k === q.a;
+    if(ok) score++; else miss.push(i);
+    app.querySelectorAll('.choice').forEach(b => {
+      b.disabled = true;
+      const kk = +b.dataset.k;
+      if(kk === q.a) b.classList.add('right');
+      else if(kk === k) b.classList.add('wrong');
+    });
+    const last = i === c.quiz.length-1;
+    document.getElementById('fb').innerHTML = `<div class="fb ${ok?'ok':'ng'}"><strong>${ok?'正解':'不正解'}</strong>${q.e}</div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="nx">${last?'結果を見る':'次の問題'}</button></div>`;
+    const nx = document.getElementById('nx'); nx.focus();
+    nx.onclick = () => { if(last) result(); else { i++; show(); } };
+  }
+  function result(){
+    const s = st(id), pass = score >= PASS;
+    if(pass) s.passed = true;
+    s.best = Math.max(s.best, score); save();
+    const next = COURSE[id];
+    const pdone = COURSE.filter(x => x.part === c.part).every(x => st(x.id).passed);
+    const opened = pass && pdone ? PARTS.filter(P => P.req === c.part) : [];
+    const goLv = !pass ? null : (next && next.part === c.part) ? next : (opened.length ? COURSE.find(x => x.part === opened[0].name) : null);
+    const goPaid = goLv && isPaid(goLv) && !hasPlan(goLv);
+    const msg = !pass ? `${PASS}問以上の正解で合格です。紙芝居を見直してから、もう一度挑戦してみましょう。`
+      : (next && next.part === c.part) ? `レベル${next.id}「${next.title}」が解放されました。`
+      : `${c.part}を修了しました。` + (opened.length ? `${opened.map(o => o.name).join('・')}が解放されました。` : '');
+    app.innerHTML = `<h1>テスト結果</h1>
+    <div class="result">
+      <div class="score">${score}<small> / ${c.quiz.length}問</small></div>
+      <h2 style="color:var(${pass?'--ok':'--ng'});margin-top:6px">${pass ? '合格です' : 'もう少しです'}</h2>
+      <p class="lead" style="margin-inline:auto">${msg}${goPaid ? 'この先は有料プランで受講できます。' : ''}</p>
+      ${miss.length ? `<div class="review">${miss.map(m=>`<div><span class="x">第${m+1}問</span>　${c.quiz[m].q}<br>正解：${esc(c.quiz[m].c[c.quiz[m].a])}</div>`).join('')}</div>` : ''}
+      <div class="row">
+        ${goLv && !goPaid ? `<button class="btn" id="go">レベル${goLv.id}の紙芝居へ</button>` : ''}
+        ${!pass ? `<button class="btn" id="retry">もう一度テスト</button><button class="btn sub" id="reread">紙芝居を見直す</button>` : ''}
+        <button class="btn sub" id="back">コースに戻る</button>
+      </div></div>`;
+    const g = id => document.getElementById(id);
+    if(g('go')) g('go').onclick = () => story(goLv.id, 0);
+    if(g('retry')) g('retry').onclick = () => quiz(id);
+    if(g('reread')) g('reread').onclick = () => story(id, 0);
+    g('back').onclick = home;
+    window.scrollTo(0,0);
+  }
+  show();
+}
+home();
+boot();
+</script>
+
+</html>

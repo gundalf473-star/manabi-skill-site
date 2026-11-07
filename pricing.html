@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>料金プラン｜まなびスキル研修室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 木の舞台に紙芝居カードが立つヒーロー → 学び方の3ステップ → 6コースのカード一覧 */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1c2632; --muted:#5a6776; --line:#d3dae2;
+  --ai:#2a4a8a; --ai-soft:#e2e9f6; --ok:#2c7a4c; --ok-soft:#e1f1e7;
+  --wood:#8b5a33; --wood-dark:#5d3a1f; --paper:#fbf8f0; --card-ink:#2a241c; --card-muted:#6b5f50;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --surface:#1a2129; --ink:#e5eaf0; --muted:#9ba8b5; --line:#2e3843;
+  --ai:#8fb0ec; --ai-soft:#1f2c42; --ok:#6fcf97; --ok-soft:#183025;
+  --wood:#9c6a3f; --wood-dark:#5a3820; --paper:#ece6d8; --card-ink:#2a241c; --card-muted:#665a4b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:1000px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+a{color:inherit}
+a:focus-visible{outline:3px solid var(--ai);outline-offset:3px;border-radius:8px}
+header.site{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-display);font-weight:700;font-size:17px;color:var(--ai);letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+.brand svg{width:34px;height:34px;flex:none}
+header nav a{font-size:14px;color:var(--muted);text-decoration:none}
+
+/* ヒーロー */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:36px;align-items:center;padding-block:40px 32px}
+.hero h1{font-size:clamp(28px,5.2vw,42px)}
+.hero h1 span{color:var(--ai)}
+.hero p{color:var(--muted);margin:14px 0 22px;max-width:30em}
+.cta{display:inline-flex;align-items:center;gap:8px;background:var(--ai);color:var(--surface);text-decoration:none;font-weight:700;padding:12px 22px;border-radius:10px}
+.butai{background:linear-gradient(180deg,var(--wood),var(--wood-dark));border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(40,25,10,.25);max-width:440px;justify-self:center;width:100%}
+.mado{background:var(--wood-dark);border-radius:6px;padding:6px}
+.kami{background:var(--paper);color:var(--card-ink);border-radius:4px;padding:20px;display:grid;gap:10px;min-height:230px;align-content:start}
+.kami .pg{font-size:12px;color:var(--card-muted);letter-spacing:.08em}
+.kami h3{font-size:21px}
+.kami p{margin:0;font-family:var(--f-display);font-size:15px;line-height:1.9}
+.kami .say{border-left:3px solid var(--wood);padding-left:10px;font-size:14px}
+.kami .say b{display:block;font-size:11px;color:var(--card-muted);font-weight:500}
+.kami .hl{background:#fff3c4;font-weight:700;padding:0 3px;border-radius:3px}
+.legs{display:flex;justify-content:space-between;padding:0 30px}
+.legs i{width:12px;height:22px;background:var(--wood-dark);border-radius:0 0 4px 4px}
+@media (max-width:760px){.hero{grid-template-columns:1fr;padding-block:28px 20px}}
+
+/* 学び方 */
+.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:40px}
+.how h2{font-size:18px;margin-bottom:14px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;min-width:0}
+.steps li::before{counter-increment:s;content:counter(s);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;background:var(--ai-soft);color:var(--ai)}
+.steps b{display:block;font-family:var(--f-display)}
+.steps span{font-size:14px;color:var(--muted)}
+@media (max-width:760px){.steps{grid-template-columns:1fr}}
+
+/* コース一覧 */
+.list-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.list-head h2{font-size:24px}
+.list-head small{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+.course{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;display:grid;grid-template-rows:auto auto 1fr auto;gap:10px;min-width:0;transition:border-color .15s, transform .15s}
+.course:hover{border-color:var(--ai);transform:translateY(-2px)}
+@media (prefers-reduced-motion: reduce){.course{transition:none}.course:hover{transform:none}}
+.course .ic{width:48px;height:48px;border-radius:12px;background:var(--ai-soft);color:var(--ai);display:grid;place-items:center}
+.course .ic svg{width:30px;height:30px}
+.course h3{font-size:19px}
+.course p{margin:0;font-size:14px;color:var(--muted)}
+.course .chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;padding:1px 9px;border-radius:99px;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:10px}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.go{color:var(--ai);font-weight:700}
+.chip.free{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.paid{background:var(--paper);color:var(--wood-dark);border-color:var(--wood)}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+</style><style>
+.ph{padding-block:32px 8px}
+.ph h1{font-size:clamp(26px,5vw,36px)}
+.ph p{color:var(--muted);margin:10px 0 0;max-width:36em}
+.free-box{background:var(--ok-soft);border-radius:14px;padding:18px 20px;margin:24px 0 36px}
+.free-box h2{font-size:18px;color:var(--ok)}
+.free-box p{margin:6px 0 0;font-size:14px}
+.sec{margin-bottom:36px}
+.sec h2{font-size:22px;margin-bottom:4px}
+.sec>p{color:var(--muted);font-size:14px;margin:0 0 14px}
+.plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.plancard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;grid-template-rows:auto auto 1fr auto;min-width:0}
+.plancard h3{font-size:18px}
+.plancard .sub{font-size:13px;color:var(--muted)}
+.plancard ul{margin:0;padding-left:1.2em;font-size:14px;color:var(--muted)}
+.price{font-family:var(--f-display);font-weight:700;font-size:30px;font-variant-numeric:tabular-nums}
+.price small{font-size:14px;color:var(--muted);font-weight:500}
+.buy{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;background:var(--ai);color:var(--surface);cursor:pointer;width:100%;min-height:46px}
+.buy:disabled{opacity:.6;cursor:wait}
+.buy.owned{background:var(--ok-soft);color:var(--ok);cursor:default}
+.codebox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:12px}
+.codebox .row2{display:flex;gap:10px;flex-wrap:wrap}
+.codebox input{font:inherit;font-size:18px;letter-spacing:.08em;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:1;min-width:0;max-width:320px;text-transform:uppercase}
+.codebox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 18px;background:var(--ai);color:var(--surface);cursor:pointer;min-height:46px}
+.msg{font-size:14px;color:var(--muted)}
+.msg.err{color:#b03a3a}
+.mine{margin:0;padding-left:1.2em;font-size:14px}
+.faq{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 20px}
+.faq details{border-bottom:1px solid var(--line);padding:12px 0}
+.faq details:last-child{border-bottom:0}
+.faq summary{cursor:pointer;font-weight:700}
+.faq p{margin:8px 0 0;color:var(--muted);font-size:14px}
+</style>
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="./" style="text-decoration:none">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="6" width="56" height="42" rx="6" fill="#8b5a33"/><rect x="10" y="12" width="44" height="30" rx="2" fill="#fbf8f0"/><rect x="17" y="31" width="7" height="6" rx="1" fill="#2a4a8a"/><rect x="28.5" y="25" width="7" height="12" rx="1" fill="#2a4a8a"/><rect x="40" y="19" width="7" height="18" rx="1" fill="#2a4a8a"/><rect x="12" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/><rect x="45" y="48" width="7" height="10" rx="2" fill="#5d3a1f"/></svg>
+      まなびスキル研修室
+    </a>
+    <nav><a href="./#courses">コース一覧</a></nav>
+  </header>
+  <section class="ph">
+    <h1>料金プラン</h1>
+    <p>入門編はすべて無料です。中級編と上位資格は、コースごとに1年単位でご購入いただけます。</p>
+  </section>
+  <div class="free-box"><h2>無料で受講できる内容</h2>
+    <p>情報セキュリティ・ビジネスマナー・コンプライアンス・会計基礎知識・教養の各入門編と、資格対策のITパスポート・簿記3級・FP3級。登録なしで、すぐに始められます。</p></div>
+  <section class="sec"><h2>各コースの中級編</h2><p>どのコースも、入門編を修了すると受講できます。</p><div class="plans">
+    <div class="plancard"><h3>情報セキュリティ 中級編</h3><div class="sub">アカウントの守り方・巧妙なメール・情報の扱い・最新の手口</div><ul><li>4レベル（紙芝居24場面・確認テスト20問）</li></ul>
+      <div class="price">1,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="security">購入する</button></div>
+    <div class="plancard"><h3>ビジネスマナー 中級編</h3><div class="sub">言葉づかいの応用・会議・タクシーの席次・クレーム対応</div><ul><li>2レベル（紙芝居12場面・確認テスト10問）</li></ul>
+      <div class="price">1,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="manner">購入する</button></div>
+    <div class="plancard"><h3>コンプライアンス 中級編</h3><div class="sub">働き方のルール・企業不祥事を防ぐ</div><ul><li>2レベル（紙芝居12場面・確認テスト10問）</li></ul>
+      <div class="price">1,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="compliance">購入する</button></div>
+    <div class="plancard"><h3>会計基礎知識 中級編</h3><div class="sub">経営分析の指標・利益を生む判断</div><ul><li>2レベル（紙芝居12場面・確認テスト10問）</li></ul>
+      <div class="price">1,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="kaikei">購入する</button></div>
+    <div class="plancard"><h3>教養 中級編</h3><div class="sub">改まった言葉・社会と経済のキーワード</div><ul><li>2レベル（紙芝居12場面・確認テスト10問）</li></ul>
+      <div class="price">1,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="kyoyo">購入する</button></div>
+  </div></section>
+  <section class="sec"><h2>資格対策（上位資格）</h2><p>入門の資格（ITパスポート・簿記3級・FP3級）を修了すると受講できます。</p><div class="plans">
+    <div class="plancard"><h3>基本情報技術者試験</h3><div class="sub">基礎理論・ネットワーク・データベース・クラウド・開発手法・アルゴリズムと情報セキュリティ</div><ul><li>6レベル（紙芝居36場面・確認テスト30問）</li></ul>
+      <div class="price">3,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="kihon">購入する</button></div>
+    <div class="plancard"><h3>簿記2級</h3><div class="sub">商業簿記（固定資産・決算整理・リース・外貨・株主資本）と工業簿記の基本</div><ul><li>4レベル（紙芝居24場面・確認テスト20問）</li></ul>
+      <div class="price">3,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="boki2">購入する</button></div>
+    <div class="plancard"><h3>FP2級</h3><div class="sub">ライフプランと社会保険・保険・金融資産運用・税金・不動産と相続</div><ul><li>5レベル（紙芝居30場面・確認テスト25問）</li></ul>
+      <div class="price">3,000円<small>／1年（税込）</small></div>
+      <button class="buy" data-plan="fp2">購入する</button></div>
+  </div></section>
+  <section class="sec" id="code"><h2>受講コード</h2><p>購入したときに表示された受講コードを入力すると、ほかのパソコンやスマホでも有料コースを受講できます。</p>
+    <div class="codebox">
+      <label for="codeInput" style="font-weight:700">受講コード（例：ABCD-EFGH-JKLM）</label>
+      <div class="row2"><input id="codeInput" autocomplete="off" inputmode="text" placeholder="XXXX-XXXX-XXXX"><button id="codeBtn" type="button">受講コードを使う</button></div>
+      <div id="codeMsg" class="msg" aria-live="polite"></div>
+    </div>
+  </section>
+  <section class="sec"><h2>よくある質問</h2><div class="faq">
+    <details><summary>購入した期間が終わるとどうなりますか？</summary><p>その有料コースが受講できなくなります。無料の入門編はそのまま使えます。</p></details>
+    <details><summary>いくつかのコースをまとめて買えますか？</summary><p>受講したいコースを、それぞれご購入ください。</p></details>
+    <details><summary>別のパソコンやスマホで受講するには？</summary><p>購入したときに表示される受講コードを、このページの「受講コード」に入力してください。同じコードで、何台でも受講できます。コードを忘れたときは、購入に使ったメールアドレスを添えてお問い合わせください。</p></details>
+    <details><summary>もう1つコースを買うと、受講コードは増えますか？</summary><p>このブラウザで受講コードを使っている状態で購入すると、同じ受講コードにコースが追加されます。</p></details>
+    <details><summary>支払い方法は？</summary><p>クレジットカードでお支払いいただけます。</p></details>
+    <details><summary>会社の研修としてまとめて使えますか？</summary><p>法人向けのプランは準備中です。</p></details>
+  </div></section>
+  <footer>まなびスキル研修室　<a href="tokushoho.html">特定商取引法に基づく表記</a>　<a href="privacy.html">プライバシーポリシー</a>　<a href="terms.html">利用規約</a></footer>
+</div>
+
+<script>
+const API = 'https://api.manabiskill.com';
+const NAMES = {security:'情報セキュリティ 中級編',manner:'ビジネスマナー 中級編',compliance:'コンプライアンス 中級編',kaikei:'会計基礎知識 中級編',kyoyo:'教養 中級編',kihon:'基本情報技術者試験',boki2:'簿記2級',fp2:'FP2級'};
+function getCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
+function setCode(c){ try{ localStorage.setItem('manabi-skill-code', c); }catch(e){} }
+async function post(path, body){
+  const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if(!r.ok) throw new Error(d.error || '通信に失敗しました。時間をおいてもう一度お試しください。');
+  return d;
+}
+function fmt(iso){ const d = new Date(iso); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; }
+function showPlans(code, plans){
+  const msg = document.getElementById('codeMsg');
+  const keys = Object.keys(plans || {});
+  msg.className = 'msg';
+  msg.innerHTML = `受講コード <b>${code}</b> を使っています。` + (keys.length ? `<ul class="mine">${keys.map(k => `<li>${NAMES[k] || k}：${fmt(plans[k])}まで</li>`).join('')}</ul>` : '受講中のコースはありません。');
+  document.querySelectorAll('.buy').forEach(b => {
+    if(plans && plans[b.dataset.plan]){ b.textContent = `受講中（${fmt(plans[b.dataset.plan])}まで）・延長する`; }
+  });
+}
+document.querySelectorAll('.buy').forEach(b => b.addEventListener('click', async () => {
+  b.disabled = true; const t = b.textContent; b.textContent = '決済画面を開いています…';
+  try{
+    const d = await post('/checkout', { plan: b.dataset.plan, code: getCode() });
+    location.href = d.url;
+  }catch(e){ b.disabled = false; b.textContent = t; alertMsg(e.message); }
+}));
+function alertMsg(text){ const m = document.getElementById('codeMsg'); m.className = 'msg err'; m.textContent = text; document.getElementById('code').scrollIntoView({behavior:'smooth'}); }
+document.getElementById('codeBtn').addEventListener('click', async () => {
+  const input = document.getElementById('codeInput');
+  const msg = document.getElementById('codeMsg');
+  msg.className = 'msg'; msg.textContent = '確認しています…';
+  try{
+    const d = await post('/verify', { code: input.value });
+    setCode(d.code); input.value = d.code; showPlans(d.code, d.plans);
+  }catch(e){ msg.className = 'msg err'; msg.textContent = e.message; }
+});
+(async () => {
+  const c = getCode(); if(!c) return;
+  document.getElementById('codeInput').value = c;
+  try{ const d = await post('/verify', { code: c }); showPlans(d.code, d.plans); }catch(e){}
+})();
+</script>
+</html>
