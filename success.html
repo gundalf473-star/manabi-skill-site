@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S59PZ0EEYG"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-S59PZ0EEYG', { page_location: location.origin + location.pathname });
+</script>
 <title>ご購入ありがとうございます｜まなびスキル研修室</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex">
@@ -145,6 +152,14 @@ async function claim(id, tries){
   try{
     const d = await claim(id, 5);
     try{ localStorage.setItem('manabi-skill-code', d.code); }catch(e){}
+    try{
+      const PRICE = {security:1000,manner:1000,compliance:1000,kaikei:1000,kyoyo:1000,kihon:3000,boki2:3000,fp2:3000};
+      const key = 'ga-purchase-' + id;
+      if(d.plan && !sessionStorage.getItem(key)){
+        gtag('event', 'purchase', { transaction_id: id, currency: 'JPY', value: PRICE[d.plan], items: [{ item_id: d.plan, item_name: NAMES[d.plan], price: PRICE[d.plan], quantity: 1 }] });
+        sessionStorage.setItem(key, '1');
+      }
+    }catch(e){}
     const keys = Object.keys(d.plans || {});
     const first = keys[0];
     box.innerHTML = `

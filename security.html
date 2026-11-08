@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}a.brand{text-decoration:none}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S59PZ0EEYG"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-S59PZ0EEYG');
+</script>
 <title>情報セキュリティコース</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -322,6 +329,7 @@ function quiz(id){
     const s = st(id), pass = score >= PASS;
     if(pass) s.passed = true;
     s.best = Math.max(s.best, score); save();
+    try{ gtag('event', 'level_end', { level_name: `${KEY.replace('manabi-skill-','').replace('-v1','')} L${id} ${c.title}`, success: pass, score }); }catch(e){}
     const next = COURSE[id];
     const pdone = COURSE.filter(x => x.part === c.part).every(x => st(x.id).passed);
     const opened = pass && pdone ? PARTS.filter(P => P.req === c.part) : [];

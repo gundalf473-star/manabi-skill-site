@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}</style>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S59PZ0EEYG"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-S59PZ0EEYG');
+</script>
 <title>料金プラン｜まなびスキル研修室</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -185,6 +192,7 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 
 <script>
 const API = 'https://api.manabiskill.com';
+const PRICE = {security:1000,manner:1000,compliance:1000,kaikei:1000,kyoyo:1000,kihon:3000,boki2:3000,fp2:3000};
 const NAMES = {security:'情報セキュリティ 中級編',manner:'ビジネスマナー 中級編',compliance:'コンプライアンス 中級編',kaikei:'会計基礎知識 中級編',kyoyo:'教養 中級編',kihon:'基本情報技術者試験',boki2:'簿記2級',fp2:'FP2級'};
 function getCode(){ try{ return localStorage.getItem('manabi-skill-code'); }catch(e){ return null; } }
 function setCode(c){ try{ localStorage.setItem('manabi-skill-code', c); }catch(e){} }
@@ -206,6 +214,7 @@ function showPlans(code, plans){
 }
 document.querySelectorAll('.buy').forEach(b => b.addEventListener('click', async () => {
   b.disabled = true; const t = b.textContent; b.textContent = '決済画面を開いています…';
+  try{ gtag('event', 'begin_checkout', { currency: 'JPY', value: PRICE[b.dataset.plan], items: [{ item_id: b.dataset.plan, item_name: NAMES[b.dataset.plan], price: PRICE[b.dataset.plan] }] }); }catch(e){}
   try{
     const d = await post('/checkout', { plan: b.dataset.plan, code: getCode() });
     location.href = d.url;

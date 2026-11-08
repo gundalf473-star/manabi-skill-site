@@ -73,7 +73,7 @@ async function claim(request, env) {
   if (session.payment_status !== 'paid') throw fail(402, 'お支払いの確認ができていません。少し待ってから、もう一度ページを開いてください。');
   const code = await fulfill(env, session);
   const rec = await getRecord(env, code);
-  return json({ code, plans: activePlans(rec) });
+  return json({ code, plans: activePlans(rec), plan: session.metadata && session.metadata.plan });
 }
 
 async function webhook(request, env) {
